@@ -20,7 +20,7 @@ public final class MarkdownTextView: UIView {
 
     private let viewProvider: DrawingViewProvider
 
-    public private(set) var preRenderedContents: PreRenderedContentMap = .init()
+    public private(set) var renderedContexts: RenderContext = .init()
     public private(set) var nodes: [MarkdownBlockNode] = []
 
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
@@ -94,7 +94,7 @@ public final class MarkdownTextView: UIView {
 
         assert(!Thread.isMainThread)
 
-        var preRenderedContents: [String: PreRenderedContent] = [:]
+        var renderedContexts: [String: RenderedItem] = [:]
 
         for (key, value) in mathContent {
             let image = MathRenderer.renderToImage(
@@ -102,15 +102,15 @@ public final class MarkdownTextView: UIView {
                 fontSize: theme.fonts.body.pointSize,
                 textColor: theme.colors.body
             )?.withRenderingMode(.alwaysTemplate)
-            let preRenderedContent = PreRenderedContent(
+            let renderedContext = RenderedItem(
                 image: image,
                 text: value
             )
-            preRenderedContents["math://\(key)"] = preRenderedContent
+            renderedContexts["math://\(key)"] = renderedContext
         }
 
         DispatchQueue.main.async {
-            self.preRenderedContents = preRenderedContents
+            self.renderedContexts = renderedContexts
             self.nodes = blocks
             // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
             // thus we hereby call the autoreleasepool to avoid large memory consumption
@@ -151,7 +151,7 @@ extension MarkdownTextView {
         let newDrawingToken = UUID()
         drawingToken = newDrawingToken
 
-        let renderText = TextBuilder(nodes: nodes, preRenderedContent: preRenderedContents, viewProvider: viewProvider)
+        let renderText = TextBuilder(nodes: nodes, renderedContext: renderedContexts, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { [weak self] context, line, lineOrigin, depth in
                 guard let self, drawingToken == newDrawingToken else { return }

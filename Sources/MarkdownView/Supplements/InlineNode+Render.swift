@@ -12,10 +12,10 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, preRenderedContent: PreRenderedContentMap) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderContext) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
-            result.append(node.render(theme: theme, preRenderedContent: preRenderedContent))
+            result.append(node.render(theme: theme, renderedContext: renderedContext))
         }
         return result
     }
@@ -37,7 +37,7 @@ extension MarkdownInlineNode {
         )
     }
 
-    func render(theme: MarkdownTheme, preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderContext) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):
@@ -59,7 +59,7 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            if let preRendered = preRenderedContent[string],
+            if let preRendered = renderedContext[string],
                let image = preRendered.image
             {
                 return placeImage(theme: theme, image: image, representText: preRendered.text)
@@ -83,7 +83,7 @@ extension MarkdownInlineNode {
             )
         case let .emphasis(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, preRenderedContent: preRenderedContent) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .underlineStyle: NSUnderlineStyle.thick.rawValue,
@@ -94,7 +94,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strong(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, preRenderedContent: preRenderedContent) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.font: theme.fonts.bold],
                 range: NSRange(location: 0, length: ans.length)
@@ -102,7 +102,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strikethrough(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, preRenderedContent: preRenderedContent) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.strikethroughStyle: NSUnderlineStyle.thick.rawValue],
                 range: NSRange(location: 0, length: ans.length)
@@ -110,7 +110,7 @@ extension MarkdownInlineNode {
             return ans
         case let .link(destination, children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, preRenderedContent: preRenderedContent) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .link: destination,

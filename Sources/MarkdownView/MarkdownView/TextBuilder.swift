@@ -13,7 +13,7 @@ final class TextBuilder {
     private let viewProvider: DrawingViewProvider
     private var theme: MarkdownTheme
     private let text: NSMutableAttributedString = .init()
-    private let preRenderedContent: PreRenderedContentMap
+    private let renderedContext: RenderContext
 
     private var bulletDrawing: BulletDrawingCallback?
     private var numberedDrawing: NumberedDrawingCallback?
@@ -24,9 +24,9 @@ final class TextBuilder {
 
     var listIndent: CGFloat = 20
 
-    init(nodes: [MarkdownBlockNode], preRenderedContent: PreRenderedContentMap, viewProvider: DrawingViewProvider) {
+    init(nodes: [MarkdownBlockNode], renderedContext: RenderContext, viewProvider: DrawingViewProvider) {
         self.nodes = nodes
-        self.preRenderedContent = preRenderedContent
+        self.renderedContext = renderedContext
         self.viewProvider = viewProvider
         theme = .default
     }
@@ -68,7 +68,7 @@ final class TextBuilder {
 
     func build() -> NSAttributedString {
         for node in nodes {
-            text.append(processBlock(node, preRenderedContent: preRenderedContent))
+            text.append(processBlock(node, renderedContext: renderedContext))
         }
         return text
     }
@@ -77,7 +77,7 @@ final class TextBuilder {
 // MARK: - Block Processing
 
 extension TextBuilder {
-    private func processBlock(_ node: MarkdownBlockNode, preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
+    private func processBlock(_ node: MarkdownBlockNode, renderedContext: RenderContext) -> NSAttributedString {
         let blockProcessor = BlockProcessor(
             theme: theme,
             viewProvider: viewProvider,
@@ -96,25 +96,25 @@ extension TextBuilder {
 
         switch node {
         case let .heading(level, contents):
-            return blockProcessor.processHeading(level: level, contents: contents, preRenderedContent: preRenderedContent)
+            return blockProcessor.processHeading(level: level, contents: contents, renderedContext: renderedContext)
         case let .paragraph(contents):
-            return blockProcessor.processParagraph(contents: contents, preRenderedContent: preRenderedContent)
+            return blockProcessor.processParagraph(contents: contents, renderedContext: renderedContext)
         case let .bulletedList(_, items):
-            return listProcessor.processBulletedList(items: items, preRenderedContent: preRenderedContent)
+            return listProcessor.processBulletedList(items: items, renderedContext: renderedContext)
         case let .numberedList(_, index, items):
-            return listProcessor.processNumberedList(startAt: index, items: items, preRenderedContent: preRenderedContent)
+            return listProcessor.processNumberedList(startAt: index, items: items, renderedContext: renderedContext)
         case let .taskList(_, items):
-            return listProcessor.processTaskList(items: items, preRenderedContent: preRenderedContent)
+            return listProcessor.processTaskList(items: items, renderedContext: renderedContext)
         case .thematicBreak:
             return blockProcessor.processThematicBreak()
         case let .codeBlock(language, content):
             return blockProcessor.processCodeBlock(language: language, content: content)
         case let .blockquote(children):
             return blockProcessor.processBlockquote(children) {
-                self.processBlock($0, preRenderedContent: preRenderedContent)
+                self.processBlock($0, renderedContext: renderedContext)
             }
         case let .table(_, rows):
-            return blockProcessor.processTable(rows: rows, preRenderedContent: preRenderedContent)
+            return blockProcessor.processTable(rows: rows, renderedContext: renderedContext)
         }
     }
 }

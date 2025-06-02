@@ -1,5 +1,5 @@
 //
-//  PreRenderedContent.swift
+//  renderedContext.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 6/3/25.
@@ -7,9 +7,9 @@
 
 import UIKit
 
-public typealias PreRenderedContentMap = [String: PreRenderedContent]
+public typealias RenderContext = [String: RenderedItem]
 
-public struct PreRenderedContent {
+public struct RenderedItem {
     public let image: UIImage?
     public let text: String
 }

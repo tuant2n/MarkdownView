@@ -31,8 +31,8 @@ final class BlockProcessor {
         self.tableDrawing = tableDrawing
     }
 
-    func processHeading(level: Int, contents: [MarkdownInlineNode], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
-        let string = contents.render(theme: theme, preRenderedContent: preRenderedContent)
+    func processHeading(level: Int, contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
+        let string = contents.render(theme: theme, renderedContext: renderedContext)
         var supposedFont: UIFont = theme.fonts.title
         if level <= 1 {
             supposedFont = theme.fonts.largeTitle
@@ -49,9 +49,9 @@ final class BlockProcessor {
         }
     }
 
-    func processParagraph(contents: [MarkdownInlineNode], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
+    func processParagraph(contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
         withParagraph {
-            contents.render(theme: theme, preRenderedContent: preRenderedContent)
+            contents.render(theme: theme, renderedContext: renderedContext)
         }
     }
 
@@ -109,11 +109,11 @@ final class BlockProcessor {
         return result
     }
 
-    func processTable(rows: [RawTableRow], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
+    func processTable(rows: [RawTableRow], renderedContext: RenderContext) -> NSAttributedString {
         let tableView = viewProvider.acquireTableView()
         let contents = rows.map {
             $0.cells.map { rawCell in
-                rawCell.content.render(theme: theme, preRenderedContent: preRenderedContent)
+                rawCell.content.render(theme: theme, renderedContext: renderedContext)
             }
         }
         tableView.contents = contents
