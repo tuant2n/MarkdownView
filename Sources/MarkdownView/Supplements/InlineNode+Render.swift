@@ -59,10 +59,19 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            if let preRendered = renderedContext[string],
-               let image = preRendered.image
-            {
-                return placeImage(theme: theme, image: image, representText: preRendered.text)
+            if let preRendered = renderedContext[string] {
+                if let image = preRendered.image {
+                    return placeImage(theme: theme, image: image, representText: preRendered.text)
+                } else {
+                    return NSAttributedString(
+                        string: preRendered.text,
+                        attributes: [
+                            .font: theme.fonts.codeInline,
+                            .foregroundColor: theme.colors.code,
+                            .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
+                        ]
+                    )
+                }
             }
             return NSAttributedString(
                 string: "\(string)",
