@@ -11,8 +11,8 @@ private let mathPattern: NSRegularExpression? = {
     let patterns = [
         ###"\$\$([\s\S]*?)\$\$"###, // 块级公式 $$ ... $$
         ###"\$([\s\S]*?)\$"###, // 行内公式 $ ... $
-        ###"\\\[([\s\S]*?)\\\]"###, // 带转义的块级公式 \\[ ... \\]
-        ###"\\\(([\s\S]*?)\\\)"###, // 带转义的行内公式 \\( ... \\)
+        ###"\\\\\[([\s\S]*?)\\\\\]"###, // 带转义的块级公式 \\[ ... \\]
+        ###"\\\\\(([\s\S]*?)\\\\\)"###, // 带转义的行内公式 \\( ... \\)
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
@@ -79,7 +79,7 @@ public extension MarkdownParser {
 
                 indexedMathContent[mathIndex] = mathContent
 
-                let replacement = "`math://\(mathIndex)`"
+                let replacement = " `math://\(mathIndex)` "
                 document.replaceSubrange(fullRange, with: replacement)
             }
 
