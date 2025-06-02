@@ -73,7 +73,6 @@ final class ContentController: UIViewController {
                     let date = Date()
                     self.markdownTextView.setMarkdown(
                         result.document,
-                        theme: .default,
                         mathContent: result.mathContext
                     )
                     DispatchQueue.main.asyncAndWait {

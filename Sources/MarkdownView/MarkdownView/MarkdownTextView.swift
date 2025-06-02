@@ -88,12 +88,10 @@ public final class MarkdownTextView: UIView {
         return textView.intrinsicContentSize
     }
 
-    public func setMarkdown(_ blocks: [MarkdownBlockNode], theme: MarkdownTheme? = nil, mathContent: [Int: String]) {
-        if let theme { self.theme = theme }
-        let theme = self.theme
-
+    public func setMarkdown(_ blocks: [MarkdownBlockNode], mathContent: [Int: String]) {
         assert(!Thread.isMainThread)
 
+        let theme = theme
         var renderedContexts: [String: RenderedItem] = [:]
 
         for (key, value) in mathContent {
@@ -110,15 +108,20 @@ public final class MarkdownTextView: UIView {
         }
 
         DispatchQueue.main.async {
-            self.renderedContexts = renderedContexts
-            self.nodes = blocks
-            // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
-            // thus we hereby call the autoreleasepool to avoid large memory consumption
-            autoreleasepool { self.updateTextExecute() }
-            self.setNeedsLayout()
-            self.setNeedsDisplay()
-            self.layoutIfNeeded()
+            self.setMarkdown(blocks, renderedContent: renderedContexts)
         }
+    }
+
+    public func setMarkdown(_ blocks: [MarkdownBlockNode], renderedContent: RenderContext) {
+        assert(Thread.isMainThread)
+        renderedContexts = renderedContent
+        nodes = blocks
+        // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
+        // thus we hereby call the autoreleasepool to avoid large memory consumption
+        autoreleasepool { self.updateTextExecute() }
+        setNeedsLayout()
+        setNeedsDisplay()
+        layoutIfNeeded()
     }
 }
 
