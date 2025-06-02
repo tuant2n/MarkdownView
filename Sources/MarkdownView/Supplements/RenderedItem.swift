@@ -1,5 +1,5 @@
 //
-//  renderedContext.swift
+//  RenderedItem.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 6/3/25.

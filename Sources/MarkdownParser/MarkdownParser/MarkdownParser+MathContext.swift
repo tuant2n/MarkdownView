@@ -58,24 +58,31 @@ public extension MarkdownParser {
 
             var indexer = 0
             for match in matches where match.numberOfRanges > 1 {
-                range_loop: for range in 1 ..< match.numberOfRanges {
-                    let mathRange = match.range(at: range)
-                    guard mathRange.location != NSNotFound,
-                          let range = Range(mathRange, in: document)
-                    else { continue }
+                var mathContentRange: NSRange?
 
-                    let mathIndex = indexer
-                    let mathContent = (document as NSString).substring(with: mathRange)
-
-                    defer { indexer += 1 }
-
-                    indexedMathContent[mathIndex] = mathContent
-
-                    let replacement = "`math://\(mathIndex)`"
-                    document.replaceSubrange(range, with: replacement)
-
-                    continue range_loop
+                // find the longest capture group
+                for rangeIndex in 1 ..< match.numberOfRanges {
+                    let captureRange = match.range(at: rangeIndex)
+                    if captureRange.location != NSNotFound {
+                        mathContentRange = captureRange
+                        break
+                    }
                 }
+
+                guard let contentRange = mathContentRange else { continue }
+
+                let fullMatchRange = match.range(at: 0)
+                guard let fullRange = Range(fullMatchRange, in: document) else { continue }
+
+                let mathIndex = indexer
+                let mathContent = (document as NSString).substring(with: contentRange)
+
+                indexer += 1
+
+                indexedMathContent[mathIndex] = mathContent
+
+                let replacement = "`math://\(mathIndex)`"
+                document.replaceSubrange(fullRange, with: replacement)
             }
 
             indexedContent = document
