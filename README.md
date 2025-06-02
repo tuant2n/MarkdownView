@@ -33,9 +33,14 @@ Platform compatibility:
 import MarkdownView
 import MarkdownParser
 
+let markdownTextView = MarkdownTextView()
 let parser = MarkdownParser()
-let document = parser.feed("hi")
-markdownTextView.nodes = document
+let result = parser.parse("# Hello World")
+markdownTextView.setMarkdown(
+    result.document,
+    theme: .default,
+    mathContent: result.mathContext
+)
 ```
 
 ## Example
