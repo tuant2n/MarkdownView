@@ -10,9 +10,10 @@ import Foundation
 private let mathPattern: NSRegularExpression? = {
     let patterns = [
         ###"\$\$([\s\S]*?)\$\$"###, // 块级公式 $$ ... $$
-        ###"\$([\s\S]*?)\$"###, // 行内公式 $ ... $
+//        ###"\$([^\S\r\n]+?)\$"###, // 行内公式 $ ... $ 拒绝换行
         ###"\\\\\[([\s\S]*?)\\\\\]"###, // 带转义的块级公式 \\[ ... \\]
         ###"\\\\\(([\s\S]*?)\\\\\)"###, // 带转义的行内公式 \\( ... \\)
+        ###"\\\[[\s\S]*?(\\(\s|\S)+?\n)+?\\\]"###, // 带转义的块级公式 \[ ... \] 且存在多行
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
