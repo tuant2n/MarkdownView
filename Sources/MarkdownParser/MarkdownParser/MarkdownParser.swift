@@ -48,7 +48,8 @@ public class MarkdownParser {
                 return cmark_parser_finish(parser)
             }
         }
-        let blocks = dumpBlocks(root: nodes)
+        var blocks = dumpBlocks(root: nodes)
+        blocks = processInlineMathBlocks(blocks, mathContext: math)
         return .init(document: blocks, mathContext: math.indexedMathContent)
     }
 }
