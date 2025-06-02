@@ -30,11 +30,20 @@ enum MathRenderer {
         }
     }
 
+    static let mathPattern: NSRegularExpression? = {
+        let pattern = ###"\$\$([\s\S]*?)\$\$|\$([\s\S]*?)\$|\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)"###
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            assertionFailure("failed to create regex for math pattern")
+            return nil
+        }
+        return regex
+    }()
+
     static func parseMathInText(_ text: String, textAttributes: [NSAttributedString.Key: Any] = [:]) -> [ParsedContent] {
         var results: [ParsedContent] = []
 
-        let pattern = #"\$([^$]+)\$"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+        guard let regex = mathPattern else {
+            assertionFailure()
             results.append(ParsedContent(type: .text, content: text, attributes: textAttributes))
             return results
         }
@@ -50,11 +59,19 @@ enum MathRenderer {
                 }
             }
 
-            if match.numberOfRanges > 1 {
-                let mathRange = match.range(at: 1)
-                if let mathFormula = text.substring(with: mathRange) {
-                    results.append(ParsedContent(type: .math, content: mathFormula, attributes: textAttributes))
+            // Check all possible capturing groups for math content
+            var mathFormula: String?
+            for group in 1 ..< match.numberOfRanges {
+                let mathRange = match.range(at: group)
+                if mathRange.location != NSNotFound, mathRange.length > 0,
+                   let formula = text.substring(with: mathRange)
+                {
+                    mathFormula = formula
+                    break
                 }
+            }
+            if let mathFormula {
+                results.append(ParsedContent(type: .math, content: mathFormula, attributes: textAttributes))
             }
 
             lastIndex = match.range.location + match.range.length
