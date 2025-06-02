@@ -60,17 +60,23 @@ final class ContentController: UIViewController {
         )
     }
 
+    private var streamDocument = ""
+
     @objc func play() {
-        let parser = MarkdownParser()
         print(#function, Date())
         DispatchQueue.global().async { [self] in
-            parser.reset()
             for char in testDocument {
+                streamDocument.append(char)
                 autoreleasepool {
-                    let document = parser.feed(.init(char))
+                    let parser = MarkdownParser()
+                    let result = parser.parse(streamDocument)
+                    let date = Date()
+                    self.markdownTextView.setMarkdown(
+                        result.document,
+                        theme: .default,
+                        mathContent: result.mathContext
+                    )
                     DispatchQueue.main.asyncAndWait {
-                        let date = Date()
-                        self.markdownTextView.nodes = document
                         self.view.setNeedsLayout()
                         self.view.layoutIfNeeded()
                         let time = Date().timeIntervalSince(date)
@@ -78,7 +84,6 @@ final class ContentController: UIViewController {
                     }
                 }
             }
-            parser.reset()
         }
     }
 

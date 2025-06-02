@@ -10,11 +10,10 @@ import cmark_gfm_extensions
 import Foundation
 
 public class MarkdownParser {
-    private var parser: UnsafeMutablePointer<cmark_parser>!
+    public init() {}
 
-    public init() {
+    func withParser<T>(_ block: (UnsafeMutablePointer<cmark_parser>) -> T) -> T {
         let parser = cmark_parser_new(CMARK_OPT_DEFAULT)!
-        self.parser = parser
         cmark_gfm_core_extensions_ensure_registered()
         let extensionNames = [
             "autolink",
@@ -30,27 +29,26 @@ public class MarkdownParser {
             }
             cmark_parser_attach_syntax_extension(parser, syntaxExtension)
         }
+        defer { cmark_parser_free(parser) }
+        return block(parser)
     }
 
-    deinit {
-        cmark_parser_free(parser)
-        parser = nil
+    public struct ParseResult {
+        public let document: [MarkdownBlockNode]
+        public let mathContext: [Int: String]
     }
 
-    public func feed(_ text: String) -> [MarkdownBlockNode] {
-        cmark_parser_feed(parser, text, text.utf8.count)
-        let forked = cmark_parser_fork(parser)
-        defer { cmark_parser_free(forked) }
-        let node = cmark_parser_finish(forked)
-        return dumpBlocks(root: node)
-    }
-
-    public func finalize() -> [MarkdownBlockNode] {
-        let node = cmark_parser_finish(parser)
-        return dumpBlocks(root: node)
-    }
-
-    public func reset() {
-        cmark_parser_finish(parser)
+    public func parse(_ markdown: String) -> ParseResult {
+        let math = MathContext(preprocessText: markdown)
+        math.process()
+        let markdown = math.indexedContent ?? markdown
+        let nodes = withParser { parser in
+            markdown.withCString { str in
+                cmark_parser_feed(parser, str, strlen(str))
+                return cmark_parser_finish(parser)
+            }
+        }
+        let blocks = dumpBlocks(root: nodes)
+        return .init(document: blocks, mathContext: math.indexedMathContent)
     }
 }

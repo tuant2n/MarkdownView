@@ -31,22 +31,22 @@ final class ListProcessor {
         self.checkboxDrawing = checkboxDrawing
     }
 
-    func processBulletedList(items: [RawListItem]) -> NSAttributedString {
+    func processBulletedList(items: [RawListItem], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
         let items = flatList(.bulleted(items), currentDepth: 0)
-        return renderListItems(items)
+        return renderListItems(items, preRenderedContent: preRenderedContent)
     }
 
-    func processNumberedList(startAt index: Int, items: [RawListItem]) -> NSAttributedString {
+    func processNumberedList(startAt index: Int, items: [RawListItem], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
         let items = flatList(.numbered(index, items), currentDepth: 0)
-        return renderListItems(items)
+        return renderListItems(items, preRenderedContent: preRenderedContent)
     }
 
-    func processTaskList(items: [RawTaskListItem]) -> NSAttributedString {
+    func processTaskList(items: [RawTaskListItem], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
         let items = flatList(.task(items), currentDepth: 0)
-        return renderListItems(items)
+        return renderListItems(items, preRenderedContent: preRenderedContent)
     }
 
-    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false) -> NSAttributedString {
+    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
@@ -70,7 +70,7 @@ final class ListProcessor {
                 }
             }),
         ]))
-        string.append(item.paragraph.render(theme: theme))
+        string.append(item.paragraph.render(theme: theme, preRenderedContent: preRenderedContent))
 
         string.addAttributes(
             [.paragraphStyle: paragraphStyle],
@@ -80,10 +80,10 @@ final class ListProcessor {
         return string
     }
 
-    private func renderListItems(_ items: [ListItem]) -> NSAttributedString {
+    private func renderListItems(_ items: [ListItem], preRenderedContent: PreRenderedContentMap) -> NSAttributedString {
         let result = NSMutableAttributedString()
         for (index, item) in items.enumerated() {
-            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1)
+            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1, preRenderedContent: preRenderedContent)
             result.append(rendered)
         }
         return result

@@ -19,12 +19,9 @@ public final class MarkdownTextView: UIView {
     }
 
     private let viewProvider: DrawingViewProvider
-    public var nodes: [MarkdownBlockNode] = [] {
-        didSet {
-            updateText()
-            setNeedsLayout()
-        }
-    }
+
+    public private(set) var preRenderedContents: PreRenderedContentMap = .init()
+    public private(set) var nodes: [MarkdownBlockNode] = []
 
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
     public var codePreviewHandler: ((String?, NSAttributedString) -> Void)?
@@ -91,6 +88,41 @@ public final class MarkdownTextView: UIView {
         return textView.intrinsicContentSize
     }
 
+    public func setMarkdown(_ blocks: [MarkdownBlockNode], theme: MarkdownTheme? = nil, mathContent: [Int: String]) {
+        if let theme { self.theme = theme }
+        let theme = self.theme
+
+        assert(!Thread.isMainThread)
+
+        var preRenderedContents: [String: PreRenderedContent] = [:]
+
+        for (key, value) in mathContent {
+            let image = MathRenderer.renderToImage(
+                latex: value,
+                fontSize: theme.fonts.body.pointSize,
+                textColor: theme.colors.body
+            )?.withRenderingMode(.alwaysTemplate)
+            let preRenderedContent = PreRenderedContent(
+                image: image,
+                text: value
+            )
+            preRenderedContents["math://\(key)"] = preRenderedContent
+        }
+
+        DispatchQueue.main.async {
+            self.preRenderedContents = preRenderedContents
+            self.nodes = blocks
+            // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
+            // thus we hereby call the autoreleasepool to avoid large memory consumption
+            autoreleasepool { self.updateTextExecute() }
+            self.setNeedsLayout()
+            self.setNeedsDisplay()
+            self.layoutIfNeeded()
+        }
+    }
+}
+
+extension MarkdownTextView {
     private func releaseDrawingViews() {
         for view in drawingViewsDirtyMarks.keys {
             if let codeView = view as? CodeView {
@@ -100,12 +132,6 @@ public final class MarkdownTextView: UIView {
                 viewProvider.releaseTableView(tableView)
             }
         }
-    }
-
-    private func updateText() {
-        // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
-        // thus we hereby call the autoreleasepool to avoid large memory consumption
-        autoreleasepool { self.updateTextExecute() }
     }
 
     private func updateTextExecute() {
@@ -125,7 +151,7 @@ public final class MarkdownTextView: UIView {
         let newDrawingToken = UUID()
         drawingToken = newDrawingToken
 
-        let renderText = TextBuilder(nodes: nodes, viewProvider: viewProvider)
+        let renderText = TextBuilder(nodes: nodes, preRenderedContent: preRenderedContents, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { [weak self] context, line, lineOrigin, depth in
                 guard let self, drawingToken == newDrawingToken else { return }
@@ -258,7 +284,6 @@ public final class MarkdownTextView: UIView {
     }
 
     private func configureSubviews() {
-        updateText()
         textView.backgroundColor = .clear
         textView.attributedText = attributedText ?? .init()
         textView.tapHandler = { [weak self] highlightRegion, touchLocation in

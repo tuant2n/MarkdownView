@@ -39,10 +39,10 @@
     {
       "identity" : "swift-cmark",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/swift-cmark",
+      "location" : "https://github.com/swiftlang/swift-cmark",
       "state" : {
-        "revision" : "65cccbe1098cddf9311061995b70eb439d5901f6",
-        "version" : "0.6.1"
+        "revision" : "b022b08312decdc46585e0b3440d97f6f22ef703",
+        "version" : "0.6.0"
       }
     },
     {

@@ -1,5 +1,5 @@
 //
-//  MathView.swift
+//  ImageAttachmentView.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 5/27/25.
@@ -9,7 +9,7 @@ import Litext
 import SwiftMath
 import UIKit
 
-class MathView: UIImageView, LTXAttributeStringRepresentable {
+class ImageAttachmentView: UIImageView, LTXAttributeStringRepresentable {
     let text: String
     init(text: String, image: UIImage, theme: MarkdownTheme) {
         self.text = text
