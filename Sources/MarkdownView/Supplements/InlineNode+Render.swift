@@ -28,7 +28,7 @@ extension MarkdownInlineNode {
         let originalAttributes = attributedString.length > 0 ?
             attributedString.attributes(at: 0, effectiveRange: nil) : [:]
 
-        let parsedContent = MathRenderer.parseMathInText(text, textAttributes: originalAttributes)
+        let parsedContent = MathRenderer.parseMathInText(text as NSString, textAttributes: originalAttributes)
 
         let hasMath = parsedContent.contains { $0.type == .math }
         guard hasMath else { return }
@@ -42,6 +42,7 @@ extension MarkdownInlineNode {
                 attributedString.append(textAttrString)
 
             case .math:
+                print("Rendering math content: \(content.content)")
                 let mathContent = content.content
                 let currentFont = (originalAttributes[.font] as? UIFont) ?? theme.fonts.body
                 let currentColor = (originalAttributes[.foregroundColor] as? UIColor) ?? theme.colors.body

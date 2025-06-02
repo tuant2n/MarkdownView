@@ -31,6 +31,6 @@ class MathView: UIImageView, LTXAttributeStringRepresentable {
 
     func attributedStringRepresentation() -> NSAttributedString {
         // copy as image
-        .init(string: "$\(text)$")
+        .init(string: "<math>\(text)</math>")
     }
 }

@@ -31,63 +31,72 @@ enum MathRenderer {
     }
 
     static let mathPattern: NSRegularExpression? = {
-        let pattern = ###"\$\$([\s\S]*?)\$\$|\$([\s\S]*?)\$|\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)"###
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+        let patterns = [
+            ###"\$([\s\S]*?)\$"###,           // 行内公式 $ ... $
+            ###"\$\$([\s\S]*?)\$\$"###,       // 块级公式 $$ ... $$
+            ###"\\\[([\s\S]*?)\\\]"###,       // 带转义的块级公式 \\[ ... \\]
+            ###"\\\(([\s\S]*?)\\\)"###,       // 带转义的行内公式 \\( ... \\)
+        ]
+        let pattern = patterns.joined(separator: "|")
+        guard let regex = try? NSRegularExpression(
+            pattern: pattern,
+            options: [
+                .caseInsensitive,
+                .allowCommentsAndWhitespace,
+            ]
+        ) else {
             assertionFailure("failed to create regex for math pattern")
             return nil
         }
         return regex
     }()
 
-    static func parseMathInText(_ text: String, textAttributes: [NSAttributedString.Key: Any] = [:]) -> [ParsedContent] {
-        var results: [ParsedContent] = []
-
+    static func parseMathInText(_ text: NSString, textAttributes: [NSAttributedString.Key: Any] = [:]) -> [ParsedContent] {
         guard let regex = mathPattern else {
             assertionFailure()
-            results.append(ParsedContent(type: .text, content: text, attributes: textAttributes))
-            return results
+            return [ParsedContent(type: .text, content: text as String, attributes: textAttributes)]
         }
 
-        let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
-        var lastIndex = 0
+        let matches = regex.matches(in: text as String, options: [], range: NSRange(location: 0, length: text.length))
+        if matches.isEmpty {
+            return [ParsedContent(type: .text, content: text as String, attributes: textAttributes)]
+        }
+        var results: [ParsedContent] = []
+        var lastRange = NSRange(location: 0, length: 0)
 
         for match in matches {
-            if match.range.location > lastIndex {
-                let beforeRange = NSRange(location: lastIndex, length: match.range.location - lastIndex)
-                if let beforeText = text.substring(with: beforeRange), !beforeText.isEmpty {
-                    results.append(ParsedContent(type: .text, content: beforeText, attributes: textAttributes))
-                }
+            let matchRange = match.range
+            
+            // Add text before the math expression
+            if matchRange.location > lastRange.location + lastRange.length {
+                let textRange = NSRange(
+                    location: lastRange.location + lastRange.length,
+                    length: matchRange.location - (lastRange.location + lastRange.length)
+                )
+                let textContent = text.substring(with: textRange)
+                results.append(ParsedContent(type: .text, content: textContent, attributes: textAttributes))
             }
-
-            // Check all possible capturing groups for math content
-            var mathFormula: String?
-            for group in 1 ..< match.numberOfRanges {
-                let mathRange = match.range(at: group)
-                if mathRange.location != NSNotFound, mathRange.length > 0,
-                   let formula = text.substring(with: mathRange)
-                {
-                    mathFormula = formula
-                    break
-                }
+            
+            // Get the math content from the first capture group
+            if match.numberOfRanges > 1, let captureRange = Range(match.range(at: 1), in: text as String) {
+                let mathContent = String((text as String)[captureRange])
+                results.append(ParsedContent(type: .math, content: mathContent, attributes: textAttributes))
             }
-            if let mathFormula {
-                results.append(ParsedContent(type: .math, content: mathFormula, attributes: textAttributes))
-            }
-
-            lastIndex = match.range.location + match.range.length
+            
+            lastRange = matchRange
         }
 
-        if lastIndex < text.count {
-            let remainingRange = NSRange(location: lastIndex, length: text.count - lastIndex)
-            if let remainingText = text.substring(with: remainingRange), !remainingText.isEmpty {
-                results.append(ParsedContent(type: .text, content: remainingText, attributes: textAttributes))
-            }
+        // Add remaining text after the last match
+        if lastRange.location + lastRange.length < text.length {
+            let textRange = NSRange(
+                location: lastRange.location + lastRange.length,
+                length: text.length - (lastRange.location + lastRange.length)
+            )
+            let textContent = text.substring(with: textRange)
+            results.append(ParsedContent(type: .text, content: textContent, attributes: textAttributes))
         }
-
-        if results.isEmpty {
-            results.append(ParsedContent(type: .text, content: text, attributes: textAttributes))
-        }
-
+        
+        print(results)
         return results
     }
 
