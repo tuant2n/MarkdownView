@@ -40,8 +40,6 @@ public extension MarkdownParser {
         }
 
         func process() {
-            assert(!Thread.isMainThread)
-
             guard let regex = mathPattern else {
                 assertionFailure()
                 return
