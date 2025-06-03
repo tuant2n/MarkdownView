@@ -79,7 +79,7 @@ public extension MarkdownParser {
 
                 indexedMathContent[mathIndex] = mathContent
 
-                let replacement = " `math://\(mathIndex)` "
+                let replacement = "`math://\(mathIndex)`"
                 document.replaceSubrange(fullRange, with: replacement)
             }
 
@@ -109,23 +109,6 @@ private let mathPatternWithinBlock: NSRegularExpression? = {
 }()
 
 extension MarkdownParser {
-    /// 从正则匹配结果中提取最长的捕获组内容
-    private func extractLongestCaptureGroup(from match: NSTextCheckingResult, in text: String) -> String? {
-        var longestCaptureRange: NSRange?
-
-        for rangeIndex in 1 ..< match.numberOfRanges {
-            let captureRange = match.range(at: rangeIndex)
-            if captureRange.location != NSNotFound {
-                if longestCaptureRange == nil || captureRange.length > longestCaptureRange!.length {
-                    longestCaptureRange = captureRange
-                }
-            }
-        }
-
-        guard let range = longestCaptureRange else { return nil }
-        return (text as NSString).substring(with: range)
-    }
-
     func processInlineMathBlocks(_ nodes: [MarkdownBlockNode], mathContext: MathContext) -> [MarkdownBlockNode] {
         nodes.map { processInlineMathBlock($0, mathContext: mathContext) }.flatMap(\.self)
     }
@@ -195,22 +178,22 @@ extension MarkdownParser {
         var lastEnd = 0
 
         for match in matches {
-            let fullRange = match.range(at: 0)
-
-            // 找到最长的捕获组
-            guard let mathContent = extractLongestCaptureGroup(from: match, in: text), !mathContent.isEmpty else {
+            let contentRange = (0 ..< match.numberOfRanges)
+                .compactMap { match.range(at: $0) }
+                .sorted { $0.length > $1.length }
+                .first
+            guard let fullRange = contentRange, fullRange.location != NSNotFound else {
                 continue
             }
 
-            // 添加匹配前的文本
             if fullRange.location > lastEnd {
-                let beforeText = (text as NSString).substring(with: NSRange(location: lastEnd, length: fullRange.location - lastEnd))
-                if !beforeText.isEmpty {
-                    result.append(.text(beforeText))
-                }
+                let beforeText = (text as NSString).substring(
+                    with: NSRange(location: lastEnd, length: fullRange.location - lastEnd)
+                )
+                if !beforeText.isEmpty { result.append(.text(beforeText)) }
             }
 
-            // 添加数学公式
+            let mathContent = (text as NSString).substring(with: fullRange)
             let mathIndex = mathContext.indexedMathContent.count
             mathContext.indexedMathContent[mathIndex] = mathContent
             result.append(.code("math://\(mathIndex)"))

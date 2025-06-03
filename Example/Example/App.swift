@@ -70,12 +70,23 @@ final class ContentController: UIViewController {
                 autoreleasepool {
                     let parser = MarkdownParser()
                     let result = parser.parse(streamDocument)
-                    let date = Date()
-                    self.markdownTextView.setMarkdown(
-                        result.document,
-                        mathContent: result.mathContext
-                    )
+                    let theme = markdownTextView.theme
+                    var renderedContexts: [String: RenderedItem] = [:]
+                    for (key, value) in result.mathContext {
+                        let image = MathRenderer.renderToImage(
+                            latex: value,
+                            fontSize: theme.fonts.body.pointSize,
+                            textColor: theme.colors.body
+                        )?.withRenderingMode(.alwaysTemplate)
+                        let renderedContext = RenderedItem(
+                            image: image,
+                            text: value
+                        )
+                        renderedContexts["math://\(key)"] = renderedContext
+                    }
                     DispatchQueue.main.asyncAndWait {
+                        let date = Date()
+                        markdownTextView.setMarkdown(result.document, renderedContent: renderedContexts)
                         self.view.setNeedsLayout()
                         self.view.layoutIfNeeded()
                         let time = Date().timeIntervalSince(date)
@@ -200,5 +211,36 @@ let testDocument = ###"""
             *   $\Delta > 0$，方程有两个不相等的实数根
             *   $\Delta = 0$，方程有两个相等的实数根
             *   $\Delta < 0$，方程没有实数根
+
+三角函数的定理有很多种，以下是几个常见定理及其证明思路的简要说明：
+
+### 1. **毕达哥拉斯定理（勾股定理）**
+   \\( \sin^2 \theta + \cos^2 \theta = 1 \\)
+   **证明**：  
+   利用单位圆定义，设角 \\( \theta \\) 的终边与单位圆交于点 \\( (x, y) \\)，则 \\( x = \cos \theta \\), \\( y = \sin \theta \\)。根据圆的方程 \\( x^2 + y^2 = 1 \\)，直接代入即得。
+
+### 2. **和角公式**
+   \\( \sin(a + b) = \sin a \cos b + \cos a \sin b \\)  
+   **证明**：  
+   - **几何法**：通过构造两个角叠加的三角形，利用面积或投影关系推导。  
+   - **复数法**：用欧拉公式 \\( e^{i(a+b)} = e^{ia} e^{ib} \\) 展开后比较虚部。
+
+### 3. **正弦定理**
+   \\( \frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C} = 2R \\)（\\( R \\) 为外接圆半径）  
+   **证明**：  
+   通过三角形的高或外接圆性质，将边与角的正弦关系转化为直径的表达式。
+
+### 4. **余弦定理**
+   \\( c^2 = a^2 + b^2 - 2ab \cos C \\)  
+   **证明**：  
+   - **坐标法**：将三角形顶点置于坐标系中，用距离公式展开。  
+   - **向量法**：利用向量点积的性质 \\( \vec{c} \cdot \vec{c} = (\vec{a} - \vec{b})^2 \\)。
+
+### 5. **万能公式（万能代换）**
+   \\( \sin \theta = \frac{2t}{1 + t^2} \\), \\( \cos \theta = \frac{1 - t^2}{1 + t^2} \\)（其中 \\( t = \tan \frac{\theta}{2} \\)）  
+   **证明**：  
+   通过半角的正切定义，结合三角恒等式推导。
+
+如果需要具体某个定理的详细证明步骤或更多定理，可以告诉我，我会进一步展开！
 
 """###
