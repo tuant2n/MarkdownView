@@ -60,15 +60,6 @@ extension CodeView {
         previewButton.setImage(previewImage, for: .normal)
         previewButton.addTarget(self, action: #selector(handlePreview(_:)), for: .touchUpInside)
         barView.addSubview(previewButton)
-
-        previewButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            previewButton.centerYAnchor.constraint(equalTo: barView.centerYAnchor),
-            previewButton.trailingAnchor.constraint(
-                equalTo: barView.trailingAnchor,
-                constant: -CodeViewConfiguration.barPadding
-            ),
-        ])
     }
 
     private func setupCopyButton() {
@@ -79,15 +70,6 @@ extension CodeView {
         copyButton.setImage(copyImage, for: .normal)
         copyButton.addTarget(self, action: #selector(handleCopy(_:)), for: .touchUpInside)
         barView.addSubview(copyButton)
-
-        copyButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            copyButton.centerYAnchor.constraint(equalTo: barView.centerYAnchor),
-            copyButton.trailingAnchor.constraint(
-                equalTo: previewButton.leadingAnchor,
-                constant: -12
-            ),
-        ])
     }
 
     private func setupScrollView() {
@@ -110,7 +92,39 @@ extension CodeView {
         let barHeight = max(languageLabel.font.lineHeight, labelSize.height) + CodeViewConfiguration.barPadding * 2
 
         layoutBarView(barHeight: barHeight, labelSize: labelSize)
+        layoutButtons()
         layoutScrollViewAndTextView(barHeight: barHeight)
+    }
+
+    private func layoutButtons() {
+        let buttonSize = CGSize(width: 44, height: 44)
+        let hasPreview = previewAction != nil
+
+        if hasPreview {
+            // 如果有预览按钮，复制按钮在右边，预览按钮在左边
+            copyButton.frame = CGRect(
+                x: barView.bounds.width - CodeViewConfiguration.barPadding - buttonSize.width,
+                y: (barView.bounds.height - buttonSize.height) / 2,
+                width: buttonSize.width,
+                height: buttonSize.height
+            )
+            previewButton.isHidden = false
+            previewButton.frame = CGRect(
+                x: copyButton.frame.minX - buttonSize.width,
+                y: (barView.bounds.height - buttonSize.height) / 2,
+                width: buttonSize.width,
+                height: buttonSize.height
+            )
+        } else {
+            // 如果没有预览按钮，复制按钮直接靠右
+            copyButton.frame = CGRect(
+                x: barView.bounds.width - CodeViewConfiguration.barPadding - buttonSize.width,
+                y: (barView.bounds.height - buttonSize.height) / 2,
+                width: buttonSize.width,
+                height: buttonSize.height
+            )
+            previewButton.isHidden = true
+        }
     }
 
     private func layoutBarView(barHeight: CGFloat, labelSize: CGSize) {

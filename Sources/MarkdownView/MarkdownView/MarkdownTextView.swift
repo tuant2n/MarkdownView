@@ -248,9 +248,13 @@ extension MarkdownTextView {
                     origin: .init(x: lineOrigin.x, y: bounds.height - lineBoundingBox.maxY),
                     size: .init(width: bounds.width, height: intrinsicContentSize.height)
                 )
-                codeView.previewAction = { [weak self] in
-                    guard let self else { return }
-                    codePreviewHandler?($0, $1)
+                if let codePreviewHandler {
+                    codeView.previewAction = { [weak self] language, attributedString in
+                        guard let self else { return }
+                        codePreviewHandler(language, attributedString)
+                    }
+                } else {
+                    codeView.previewAction = nil
                 }
 
                 isDrawingViewsReady = true

@@ -20,7 +20,11 @@ final class CodeView: UIView {
         }
     }
 
-    var previewAction: ((String?, NSAttributedString) -> Void)?
+    var previewAction: ((String?, NSAttributedString) -> Void)? {
+        didSet {
+            setNeedsLayout()
+        }
+    }
 
     private var _content: String?
     var content: String? {
@@ -90,6 +94,7 @@ final class CodeView: UIView {
     }
 
     @objc func handlePreview(_: UIButton) {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
         previewAction?(language, textView.attributedText)
     }
 
