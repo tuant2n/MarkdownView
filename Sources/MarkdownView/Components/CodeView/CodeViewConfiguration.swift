@@ -103,7 +103,7 @@ extension CodeView {
         if hasPreview {
             // 如果有预览按钮，复制按钮在右边，预览按钮在左边
             copyButton.frame = CGRect(
-                x: barView.bounds.width - CodeViewConfiguration.barPadding - buttonSize.width,
+                x: barView.bounds.width - buttonSize.width - 4,
                 y: (barView.bounds.height - buttonSize.height) / 2,
                 width: buttonSize.width,
                 height: buttonSize.height
@@ -118,7 +118,7 @@ extension CodeView {
         } else {
             // 如果没有预览按钮，复制按钮直接靠右
             copyButton.frame = CGRect(
-                x: barView.bounds.width - CodeViewConfiguration.barPadding - buttonSize.width,
+                x: barView.bounds.width - buttonSize.width - 4,
                 y: (barView.bounds.height - buttonSize.height) / 2,
                 width: buttonSize.width,
                 height: buttonSize.height
