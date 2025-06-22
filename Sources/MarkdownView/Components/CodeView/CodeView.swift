@@ -29,19 +29,23 @@ final class CodeView: UIView {
     private var _content: String = ""
     var content: String {
         set {
+            guard _content != newValue else { return }
             let oldValue = _content
             _content = newValue
 
             if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
                 calculatedAttributes.removeAll()
+            } else {
+                updateHighlightedContent()
             }
-            updateHighlightedContent()
             performHighlight(with: newValue)
         }
         get { _content }
     }
 
-    var calculatedAttributes: [NSRange: UIColor] = [:]
+    var calculatedAttributes: [NSRange: UIColor] = [:] {
+        didSet { updateHighlightedContent() }
+    }
     private let callerIdentifier = UUID()
 
     lazy var barView: UIView = .init()
@@ -122,9 +126,8 @@ final class CodeView: UIView {
 
     private func handleHighlightResult(_ result: HighlightResult) {
         switch result {
-        case let .success(attributedString):
-            calculatedAttributes = extractColorAttributes(from: attributedString)
-            updateHighlightedContent()
+        case let .success(attribute):
+            calculatedAttributes = attribute
 
         case .cancelled:
             break
@@ -132,30 +135,9 @@ final class CodeView: UIView {
         case let .error(errorMessage):
             print("[-] code highlighting error: \(errorMessage)")
             calculatedAttributes.removeAll()
-            updateHighlightedContent()
         }
     }
 
-    private func extractColorAttributes(from attributedString: NSAttributedString) -> [NSRange: UIColor] {
-        var attributes: [NSRange: UIColor] = [:]
-        let nsString = attributedString.string as NSString
-
-        attributedString.enumerateAttribute(
-            .foregroundColor,
-            in: NSRange(location: 0, length: attributedString.length)
-        ) { value, range, _ in
-            if range.length == 1 {
-                if let char = nsString.substring(with: range).first, char.isWhitespace {
-                    return
-                }
-            }
-
-            guard let color = value as? UIColor else { return }
-            attributes[range] = color
-        }
-
-        return attributes
-    }
 
     private func updateHighlightedContent() {
         let paragraphStyle = NSMutableParagraphStyle()
@@ -172,21 +154,14 @@ final class CodeView: UIView {
         )
 
         let length = attributedContent.length
-        var hasAppliedHighlight = false
 
         for (range, color) in calculatedAttributes {
             guard range.location >= 0, range.upperBound <= length else { continue }
             guard color != plainTextColor else { continue }
             let substring = attributedContent.attributedSubstring(from: range).string
-            guard !substring.allSatisfy(\.isWhitespace) else { continue }
-            attributedContent.addAttributes([
-                .foregroundColor: color,
-            ], range: range)
-            hasAppliedHighlight = true
+            attributedContent.addAttributes([.foregroundColor: color,], range: range)
         }
-        if hasAppliedHighlight || textView.attributedText.string != content {
-            textView.attributedText = attributedContent
-        }
+        textView.attributedText = attributedContent
     }
 }
 

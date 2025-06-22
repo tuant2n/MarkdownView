@@ -10,7 +10,7 @@ import UIKit
 // MARK: - Highlight Result
 
 enum HighlightResult {
-    case success(NSAttributedString)
+    case success([NSRange: UIColor])
     case cancelled
     case error(String)
 }
@@ -125,18 +125,42 @@ final class CodeHighlighter {
             }
         }
     }
+    
+    private func extractColorAttributes(from attributedString: NSAttributedString) -> [NSRange: UIColor] {
+        var attributes: [NSRange: UIColor] = [:]
+        let nsString = attributedString.string as NSString
 
-    private func performHighlight(for request: HighlightRequest, completion: @escaping (NSAttributedString?) -> Void) {
+        attributedString.enumerateAttribute(
+            .foregroundColor,
+            in: NSRange(location: 0, length: attributedString.length)
+        ) { value, range, _ in
+            if range.length == 1 {
+                if let char = nsString.substring(with: range).first, char.isWhitespace {
+                    return
+                }
+            }
+
+            guard let color = value as? UIColor else { return }
+            attributes[range] = color
+        }
+
+        return attributes
+    }
+
+    private func performHighlight(for request: HighlightRequest, completion: @escaping ([NSRange: UIColor]?) -> Void) {
         let codeTheme = request.theme.codeTheme(withFont: request.theme.fonts.code)
         let format = AttributedStringOutputFormat(theme: codeTheme)
 
         // time expensive
-        let result = executeHighlight(
+        if let result = executeHighlight(
             code: request.content,
             language: request.language,
             format: format
-        )
-        completion(result)
+        ) {
+            completion(extractColorAttributes(from: result))
+        } else {
+            completion(nil)
+        }
     }
 
     private func executeHighlight(
