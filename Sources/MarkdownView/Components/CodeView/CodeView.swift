@@ -33,12 +33,14 @@ final class CodeView: UIView {
             let oldValue = _content
             _content = newValue
 
-            if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
+            if newValue.isEmpty || !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
                 calculatedAttributes.removeAll()
             } else {
                 updateHighlightedContent()
             }
-            performHighlight(with: newValue)
+            if !newValue.isEmpty {
+                performHighlight(with: newValue)
+            }
         }
         get { _content }
     }

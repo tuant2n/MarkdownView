@@ -128,18 +128,11 @@ final class CodeHighlighter {
     
     private func extractColorAttributes(from attributedString: NSAttributedString) -> [NSRange: UIColor] {
         var attributes: [NSRange: UIColor] = [:]
-        let nsString = attributedString.string as NSString
 
         attributedString.enumerateAttribute(
             .foregroundColor,
             in: NSRange(location: 0, length: attributedString.length)
         ) { value, range, _ in
-            if range.length == 1 {
-                if let char = nsString.substring(with: range).first, char.isWhitespace {
-                    return
-                }
-            }
-
             guard let color = value as? UIColor else { return }
             attributes[range] = color
         }
@@ -169,7 +162,7 @@ final class CodeHighlighter {
         format: AttributedStringOutputFormat
     ) -> NSMutableAttributedString? {
         switch language.lowercased() {
-        case "", "plaintext":
+        case "text", "plaintext":
             return NSMutableAttributedString(string: code)
         case "swift":
             let splash = SyntaxHighlighter(format: format, grammar: SwiftGrammar())
