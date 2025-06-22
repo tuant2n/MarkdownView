@@ -27,11 +27,11 @@ final class CodeView: UIView {
     }
 
     private var _content: String = ""
-    var content: String  {
+    var content: String {
         set {
             let oldValue = _content
             _content = newValue
-            
+
             if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
                 calculatedAttributes.removeAll()
             }
@@ -105,13 +105,7 @@ final class CodeView: UIView {
         return newValue.hasPrefix(oldValue)
     }
 
-    private func performHighlight(with code: String?) {
-        guard let code else { return }
-
-        if code == _content, !calculatedAttributes.isEmpty {
-            return
-        }
-
+    private func performHighlight(with code: String) {
         CodeHighlighter.shared.submitHighlightRequest(
             content: code,
             language: language,

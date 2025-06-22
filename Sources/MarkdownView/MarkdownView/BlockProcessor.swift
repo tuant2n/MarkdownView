@@ -31,9 +31,9 @@ final class BlockProcessor {
         self.tableDrawing = tableDrawing
     }
 
-    func processHeading(level: Int, contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
+    func processHeading(level _: Int, contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
         let font: UIFont = theme.fonts.title
-        
+
         return withParagraph { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.paragraphSpacingBefore = 16

@@ -53,7 +53,7 @@ final class CodeHighlighter {
     // MARK: - Properties
 
     private let processingQueue: DispatchQueue
-    private let requestQueue: DispatchQueue
+    private let schedulerQueue: DispatchQueue
     private var highlightQueue: [HighlightRequest] = []
     private var isProcessing = false
     private var currentRequest: HighlightRequest?
@@ -62,7 +62,7 @@ final class CodeHighlighter {
 
     private init() {
         processingQueue = DispatchQueue.global(qos: .userInitiated)
-        requestQueue = DispatchQueue(label: "com.markdownview.highlighter.queue", qos: .userInitiated)
+        schedulerQueue = DispatchQueue(label: "com.markdownview.highlighter.queue", qos: .userInitiated)
     }
 
     // MARK: - Public Methods
@@ -82,7 +82,7 @@ final class CodeHighlighter {
             completion: completion
         )
 
-        requestQueue.async { [weak self] in
+        schedulerQueue.async { [weak self] in
             self?.enqueueRequest(request)
         }
     }
@@ -105,51 +105,41 @@ final class CodeHighlighter {
         let request = highlightQueue.removeFirst()
         currentRequest = request
 
-        processingQueue.async { [weak self] in
-            self?.performHighlight(for: request)
+        processingQueue.async { [self] in
+            performHighlight(for: request) { [self] result in
+                schedulerQueue.async { [self] in
+                    if let attributedString = result {
+                        let hasNewRequest = highlightQueue.contains { $0.callerIdentifier == request.callerIdentifier }
+                        if hasNewRequest {
+                            request.completion(.cancelled)
+                        } else {
+                            request.completion(.success(attributedString))
+                        }
+                    } else {
+                        request.completion(.error("failed to highlight code"))
+                    }
+
+                    currentRequest = nil
+                    processNextRequest()
+                }
+            }
         }
     }
 
-    private func performHighlight(for request: HighlightRequest) {
+    private func performHighlight(for request: HighlightRequest, completion: @escaping (NSAttributedString?) -> Void) {
         let codeTheme = request.theme.codeTheme(withFont: request.theme.fonts.code)
         let format = AttributedStringOutputFormat(theme: codeTheme)
 
-        let result = performHighlight(
+        // time expensive
+        let result = executeHighlight(
             code: request.content,
             language: request.language,
             format: format
         )
-
-        guard let attributedString = result else {
-            DispatchQueue.main.async {
-                request.completion(.error("Failed to highlight code"))
-            }
-            completeCurrentRequest()
-            return
-        }
-
-        requestQueue.async { [weak self] in
-            guard let self else { return }
-            let hasNewRequest = highlightQueue.contains { $0.callerIdentifier == request.callerIdentifier }
-            DispatchQueue.main.async {
-                if hasNewRequest {
-                    request.completion(.cancelled)
-                } else {
-                    request.completion(.success(attributedString))
-                }
-            }
-            completeCurrentRequest()
-        }
+        completion(result)
     }
 
-    private func completeCurrentRequest() {
-        requestQueue.async { [weak self] in
-            self?.currentRequest = nil
-            self?.processNextRequest()
-        }
-    }
-
-    private func performHighlight(
+    private func executeHighlight(
         code: String,
         language: String,
         format: AttributedStringOutputFormat

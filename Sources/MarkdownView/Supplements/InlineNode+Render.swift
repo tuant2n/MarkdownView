@@ -37,7 +37,7 @@ extension MarkdownInlineNode {
             ]
         )
     }
-    
+
     func placeMathImage(theme: MarkdownTheme, image: UIImage, text: String, viewProvider: DrawingViewProvider) -> NSAttributedString {
         let attachment: LTXAttachment = .init()
         let mathView = viewProvider.acquireMathImageView()
