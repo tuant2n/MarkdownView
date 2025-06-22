@@ -12,19 +12,36 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, renderedContext: RenderContext) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderContext, viewProvider: DrawingViewProvider) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
-            result.append(node.render(theme: theme, renderedContext: renderedContext))
+            result.append(node.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
         }
         return result
     }
 }
 
 extension MarkdownInlineNode {
-    func placeImage(theme: MarkdownTheme, image: UIImage, representText: String) -> NSAttributedString {
+    func placeImage(theme: MarkdownTheme, image: UIImage, representText: String, viewProvider: DrawingViewProvider) -> NSAttributedString {
         let attachment: LTXAttachment = .init()
-        let mathView = ImageAttachmentView(text: representText, image: image, theme: theme)
+        let mathView = viewProvider.acquireMathImageView()
+        mathView.configure(image: image, text: representText, theme: theme)
+        attachment.view = mathView
+        attachment.size = mathView.intrinsicContentSize
+
+        return NSAttributedString(
+            string: LTXReplacementText,
+            attributes: [
+                LTXAttachmentAttributeName: attachment,
+                kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
+            ]
+        )
+    }
+    
+    func placeMathImage(theme: MarkdownTheme, image: UIImage, text: String, viewProvider: DrawingViewProvider) -> NSAttributedString {
+        let attachment: LTXAttachment = .init()
+        let mathView = viewProvider.acquireMathImageView()
+        mathView.configure(image: image, text: text, theme: theme)
         attachment.view = mathView
         attachment.size = mathView.intrinsicContentSize
 
@@ -37,7 +54,7 @@ extension MarkdownInlineNode {
         )
     }
 
-    func render(theme: MarkdownTheme, renderedContext: RenderContext) -> NSAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderContext, viewProvider: DrawingViewProvider) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):
@@ -61,7 +78,12 @@ extension MarkdownInlineNode {
         case let .code(string):
             if let preRendered = renderedContext[string] {
                 if let image = preRendered.image {
-                    return placeImage(theme: theme, image: image, representText: preRendered.text)
+                    if string.hasPrefix("math://") {
+                        let latex = preRendered.text
+                        return placeMathImage(theme: theme, image: preRendered.image!, text: latex, viewProvider: viewProvider)
+                    } else {
+                        return placeImage(theme: theme, image: image, representText: preRendered.text, viewProvider: viewProvider)
+                    }
                 } else {
                     return NSAttributedString(
                         string: preRendered.text,
@@ -92,7 +114,7 @@ extension MarkdownInlineNode {
             )
         case let .emphasis(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .underlineStyle: NSUnderlineStyle.thick.rawValue,
@@ -103,7 +125,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strong(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.font: theme.fonts.bold],
                 range: NSRange(location: 0, length: ans.length)
@@ -111,7 +133,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strikethrough(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.strikethroughStyle: NSUnderlineStyle.thick.rawValue],
                 range: NSRange(location: 0, length: ans.length)
@@ -119,7 +141,7 @@ extension MarkdownInlineNode {
             return ans
         case let .link(destination, children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .link: destination,

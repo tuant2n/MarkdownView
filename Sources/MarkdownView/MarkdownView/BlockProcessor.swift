@@ -32,26 +32,27 @@ final class BlockProcessor {
     }
 
     func processHeading(level: Int, contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
-        let string = contents.render(theme: theme, renderedContext: renderedContext)
-        var supposedFont: UIFont = theme.fonts.title
-        if level <= 1 {
-            supposedFont = theme.fonts.largeTitle
-        }
-        string.addAttributes(
-            [
-                .font: supposedFont,
-                .foregroundColor: theme.colors.body,
-            ],
-            range: .init(location: 0, length: string.length)
-        )
-        return withParagraph {
-            string
+        let font: UIFont = theme.fonts.title
+        
+        return withParagraph { paragraph in
+            paragraph.paragraphSpacing = 16
+            paragraph.paragraphSpacingBefore = 16
+        } content: {
+            let string = contents.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
+            string.addAttributes(
+                [.font: font],
+                range: NSRange(location: 0, length: string.length)
+            )
+            return string
         }
     }
 
     func processParagraph(contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
-        withParagraph {
-            contents.render(theme: theme, renderedContext: renderedContext)
+        withParagraph { paragraph in
+            paragraph.paragraphSpacing = 16
+            paragraph.lineSpacing = 4
+        } content: {
+            contents.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
         }
     }
 
@@ -108,7 +109,7 @@ final class BlockProcessor {
         let tableView = viewProvider.acquireTableView()
         let contents = rows.map {
             $0.cells.map { rawCell in
-                rawCell.content.render(theme: theme, renderedContext: renderedContext)
+                rawCell.content.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
             }
         }
         tableView.contents = contents

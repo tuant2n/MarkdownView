@@ -32,6 +32,7 @@ public enum MathRenderer {
         guard error == nil, let image else { return nil }
         renderCache.setValue(image, forKey: latex)
 
+        print("[i] MathRenderer has completed a task for content: \(latex)")
         return image
     }
 }

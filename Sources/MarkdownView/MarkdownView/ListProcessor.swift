@@ -13,6 +13,7 @@ import UIKit
 final class ListProcessor {
     private let theme: MarkdownTheme
     private let listIndent: CGFloat
+    private let viewProvider: DrawingViewProvider
     private let bulletDrawing: TextBuilder.BulletDrawingCallback?
     private let numberedDrawing: TextBuilder.NumberedDrawingCallback?
     private let checkboxDrawing: TextBuilder.CheckboxDrawingCallback?
@@ -20,12 +21,14 @@ final class ListProcessor {
     init(
         theme: MarkdownTheme,
         listIndent: CGFloat,
+        viewProvider: DrawingViewProvider,
         bulletDrawing: TextBuilder.BulletDrawingCallback?,
         numberedDrawing: TextBuilder.NumberedDrawingCallback?,
         checkboxDrawing: TextBuilder.CheckboxDrawingCallback?
     ) {
         self.theme = theme
         self.listIndent = listIndent
+        self.viewProvider = viewProvider
         self.bulletDrawing = bulletDrawing
         self.numberedDrawing = numberedDrawing
         self.checkboxDrawing = checkboxDrawing
@@ -70,7 +73,7 @@ final class ListProcessor {
                 }
             }),
         ]))
-        string.append(item.paragraph.render(theme: theme, renderedContext: renderedContext))
+        string.append(item.paragraph.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
 
         string.addAttributes(
             [.paragraphStyle: paragraphStyle],

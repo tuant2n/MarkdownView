@@ -52,6 +52,10 @@ public final class DrawingViewProvider {
     private let tableViewPool: ViewBox<TableView> = .init {
         TableView()
     }
+    
+    private let mathImageViewPool: ViewBox<MathImageView> = .init {
+        MathImageView()
+    }
 
     public init() {}
 
@@ -71,5 +75,15 @@ public final class DrawingViewProvider {
     func releaseTableView(_ tableView: TableView) {
         tableView.removeFromSuperview()
         tableViewPool.release(tableView)
+    }
+    
+    func acquireMathImageView() -> MathImageView {
+        mathImageViewPool.acquire()
+    }
+    
+    func releaseMathImageView(_ mathImageView: MathImageView) {
+        mathImageView.removeFromSuperview()
+        mathImageView.reset()
+        mathImageViewPool.release(mathImageView)
     }
 }

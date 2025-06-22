@@ -134,6 +134,9 @@ extension MarkdownTextView {
             if let tableView = view as? TableView {
                 viewProvider.releaseTableView(tableView)
             }
+            if let mathImageView = view as? MathImageView {
+                viewProvider.releaseMathImageView(mathImageView)
+            }
         }
     }
 

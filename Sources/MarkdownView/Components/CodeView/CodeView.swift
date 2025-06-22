@@ -10,9 +10,7 @@ final class CodeView: UIView {
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
-            if let content = _content {
-                performHighlight(with: content)
-            }
+            performHighlight(with: content)
         }
     }
 
@@ -28,22 +26,17 @@ final class CodeView: UIView {
         }
     }
 
-    private var _content: String?
-    var content: String? {
+    private var _content: String = ""
+    var content: String  {
         set {
-            if _content != newValue {
-                let oldValue = _content
-                _content = newValue
-
-                if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
-                    calculatedAttributes.removeAll()
-                }
-                updateHighlightedContent()
-
-                if oldValue != newValue {
-                    performHighlight(with: newValue)
-                }
+            let oldValue = _content
+            _content = newValue
+            
+            if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
+                calculatedAttributes.removeAll()
             }
+            updateHighlightedContent()
+            performHighlight(with: newValue)
         }
         get { _content }
     }
@@ -81,7 +74,7 @@ final class CodeView: UIView {
         let labelSize = languageLabel.intrinsicContentSize
         let barHeight = labelSize.height + CodeViewConfiguration.barPadding * 2
         let textSize = textView.intrinsicContentSize
-        let supposedHeight = Self.intrinsicHeight(for: content ?? "", theme: theme)
+        let supposedHeight = Self.intrinsicHeight(for: content, theme: theme)
 
         return CGSize(
             width: max(
@@ -106,7 +99,9 @@ final class CodeView: UIView {
     }
 
     private func shouldPreserveHighlight(oldValue: String?, newValue: String?) -> Bool {
-        guard let oldValue, let newValue else { return false }
+        guard let oldValue, !oldValue.isEmpty,
+              let newValue, !newValue.isEmpty
+        else { return false }
         return newValue.hasPrefix(oldValue)
     }
 
@@ -171,11 +166,6 @@ final class CodeView: UIView {
     private func updateHighlightedContent() {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = CodeViewConfiguration.codeLineSpacing
-
-        guard let content = _content else {
-            textView.attributedText = .init()
-            return
-        }
 
         let plainTextColor = theme.colors.code
         let attributedContent: NSMutableAttributedString = .init(

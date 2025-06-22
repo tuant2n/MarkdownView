@@ -89,6 +89,7 @@ extension TextBuilder {
         let listProcessor = ListProcessor(
             theme: theme,
             listIndent: listIndent,
+            viewProvider: viewProvider,
             bulletDrawing: bulletDrawing,
             numberedDrawing: numberedDrawing,
             checkboxDrawing: checkboxDrawing
