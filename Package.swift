@@ -17,7 +17,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-collections", from: "1.2.0"),
         .package(url: "https://github.com/mgriebling/SwiftMath", from: "1.7.1"),
         .package(url: "https://github.com/Lakr233/Splash", from: "0.17.0"),
-        .package(url: "https://github.com/Lakr233/Litext", from: "0.4.5"),
+        .package(url: "https://github.com/Lakr233/Litext", from: "0.4.6"),
         .package(url: "https://github.com/swiftlang/swift-cmark", from: "0.6.0"),
         .package(url: "https://github.com/nicklockwood/LRUCache", from: "1.0.7"),
     ],
