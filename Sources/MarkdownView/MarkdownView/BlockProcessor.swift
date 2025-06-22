@@ -89,11 +89,6 @@ final class BlockProcessor {
                 .font: theme.fonts.body,
                 .ltxAttachment: LTXAttachment.hold(attrString: .init(string: content + "\n")),
                 .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
-                    // avoid data conflict on racing conditions
-                    // TODO: FIND THE ROOT CASE
-                    codeView.theme = theme
-                    codeView.content = content
-                    codeView.language = lang
                     codeDrawing?(context, line, lineOrigin)
                 }),
                 .contextView: codeView,
@@ -127,7 +122,6 @@ final class BlockProcessor {
                     $0.map(\.string).joined(separator: "\t")
                 }.joined(separator: "\n") + "\n")),
                 .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
-                    // avoid data conflict on racing conditions
                     tableView.contents = contents
                     drawingCallback?(context, line, lineOrigin)
                 }),

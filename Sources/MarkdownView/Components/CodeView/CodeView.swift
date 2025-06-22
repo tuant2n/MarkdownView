@@ -10,7 +10,9 @@ final class CodeView: UIView {
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
-            highlighter.updateTheme(theme)
+            if let content = _content {
+                performHighlight(with: content)
+            }
         }
     }
 
@@ -32,17 +34,22 @@ final class CodeView: UIView {
             if _content != newValue {
                 let oldValue = _content
                 _content = newValue
-                let delays = shouldDelayHighlight(oldValue: oldValue, newValue: newValue)
-                if delays == 0 { calculatedAttributes.removeAll() }
+
+                if !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
+                    calculatedAttributes.removeAll()
+                }
                 updateHighlightedContent()
-                performHighlight(with: newValue, delays: delays)
+
+                if oldValue != newValue {
+                    performHighlight(with: newValue)
+                }
             }
         }
         get { _content }
     }
 
-    private var calculatedAttributes: [NSRange: UIColor] = [:]
-    private let highlighter = CodeHighlighter()
+    var calculatedAttributes: [NSRange: UIColor] = [:]
+    private let callerIdentifier = UUID()
 
     lazy var barView: UIView = .init()
     lazy var scrollView: UIScrollView = .init()
@@ -98,31 +105,67 @@ final class CodeView: UIView {
         previewAction?(language, textView.attributedText)
     }
 
-    // MARK: - Highlight Logic
+    private func shouldPreserveHighlight(oldValue: String?, newValue: String?) -> Bool {
+        guard let oldValue, let newValue else { return false }
+        return newValue.hasPrefix(oldValue)
+    }
 
-    private func shouldDelayHighlight(oldValue: String?, newValue: String?) -> TimeInterval {
-        if let oldValue, !oldValue.isEmpty, newValue?.contains(oldValue) == true {
-            // Incremental modification, delay the highlight task.
-            0.1
-        } else {
-            // Non-incremental modification
-            0
+    private func performHighlight(with code: String?) {
+        guard let code else { return }
+
+        if code == _content, !calculatedAttributes.isEmpty {
+            return
+        }
+
+        CodeHighlighter.shared.submitHighlightRequest(
+            content: code,
+            language: language,
+            callerIdentifier: callerIdentifier,
+            theme: theme
+        ) { [weak self] result in
+            guard let self else { return }
+
+            DispatchQueue.main.async {
+                self.handleHighlightResult(result)
+            }
         }
     }
 
-    private func performHighlight(with code: String?, delays: TimeInterval) {
-        guard let code else { return }
+    private func handleHighlightResult(_ result: HighlightResult) {
+        switch result {
+        case let .success(attributedString):
+            calculatedAttributes = extractColorAttributes(from: attributedString)
+            updateHighlightedContent()
 
-        highlighter.highlight(
-            code: code,
-            language: language,
-            delays: delays
-        ) { [weak self] attributes in
-            if attributes.count > self?.calculatedAttributes.count ?? 0 {
-                self?.calculatedAttributes = attributes
-                self?.updateHighlightedContent()
-            }
+        case .cancelled:
+            break
+
+        case let .error(errorMessage):
+            print("[-] code highlighting error: \(errorMessage)")
+            calculatedAttributes.removeAll()
+            updateHighlightedContent()
         }
+    }
+
+    private func extractColorAttributes(from attributedString: NSAttributedString) -> [NSRange: UIColor] {
+        var attributes: [NSRange: UIColor] = [:]
+        let nsString = attributedString.string as NSString
+
+        attributedString.enumerateAttribute(
+            .foregroundColor,
+            in: NSRange(location: 0, length: attributedString.length)
+        ) { value, range, _ in
+            if range.length == 1 {
+                if let char = nsString.substring(with: range).first, char.isWhitespace {
+                    return
+                }
+            }
+
+            guard let color = value as? UIColor else { return }
+            attributes[range] = color
+        }
+
+        return attributes
     }
 
     private func updateHighlightedContent() {
@@ -143,20 +186,23 @@ final class CodeView: UIView {
                 .foregroundColor: plainTextColor,
             ]
         )
+
         let length = attributedContent.length
-        for attribute in calculatedAttributes {
-            if attribute.key.upperBound >= length || attribute.value == plainTextColor {
-                continue
-            }
-            let part = attributedContent.attributedSubstring(from: attribute.key).string
-            if part.allSatisfy(\.isWhitespace) {
-                continue
-            }
+        var hasAppliedHighlight = false
+
+        for (range, color) in calculatedAttributes {
+            guard range.location >= 0, range.upperBound <= length else { continue }
+            guard color != plainTextColor else { continue }
+            let substring = attributedContent.attributedSubstring(from: range).string
+            guard !substring.allSatisfy(\.isWhitespace) else { continue }
             attributedContent.addAttributes([
-                .foregroundColor: attribute.value,
-            ], range: attribute.key)
+                .foregroundColor: color,
+            ], range: range)
+            hasAppliedHighlight = true
         }
-        textView.attributedText = attributedContent
+        if hasAppliedHighlight || textView.attributedText.string != content {
+            textView.attributedText = attributedContent
+        }
     }
 }
 

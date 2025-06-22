@@ -249,8 +249,7 @@ extension MarkdownTextView {
                     size: .init(width: bounds.width, height: intrinsicContentSize.height)
                 )
                 if let codePreviewHandler {
-                    codeView.previewAction = { [weak self] language, attributedString in
-                        guard let self else { return }
+                    codeView.previewAction = { language, attributedString in
                         codePreviewHandler(language, attributedString)
                     }
                 } else {

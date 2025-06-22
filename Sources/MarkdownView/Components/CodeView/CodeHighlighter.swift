@@ -7,52 +7,145 @@ import Foundation
 import Splash
 import UIKit
 
-final class CodeHighlighter {
-    private let queue: DispatchQueue
-    private var taskVersion: Int64 = 0
-    private var syntaxFormat: AttributedStringOutputFormat?
+// MARK: - Highlight Result
 
-    init() {
-        queue = DispatchQueue.global(qos: .background)
-    }
+enum HighlightResult {
+    case success(NSAttributedString)
+    case cancelled
+    case error(String)
+}
 
-    func updateTheme(_ theme: MarkdownTheme) {
-        let codeTheme = theme.codeTheme(withFont: theme.fonts.code)
-        syntaxFormat = AttributedStringOutputFormat(theme: codeTheme)
-    }
+// MARK: - Highlight Request
 
-    func highlight(
-        code: String,
+struct HighlightRequest {
+    let id: UUID
+    let content: String
+    let language: String
+    let callerIdentifier: UUID
+    let theme: MarkdownTheme
+    let completion: (HighlightResult) -> Void
+    let timestamp: Date
+
+    init(
+        content: String,
         language: String,
-        delays: TimeInterval = 0,
-        completion: @escaping ([NSRange: UIColor]) -> Void
+        callerIdentifier: UUID,
+        theme: MarkdownTheme,
+        completion: @escaping (HighlightResult) -> Void
     ) {
-        taskVersion += 1
-        let currentTaskVersion = taskVersion
+        id = UUID()
+        self.content = content
+        self.language = language
+        self.callerIdentifier = callerIdentifier
+        self.theme = theme
+        self.completion = completion
+        timestamp = Date()
+    }
+}
 
-        queue.async { [weak self] in
-            guard let format = self?.syntaxFormat else { return }
+// MARK: - Code Highlighter
 
-            if delays > 0 {
-                Thread.sleep(forTimeInterval: delays)
-                if currentTaskVersion != self?.taskVersion {
-                    return
+final class CodeHighlighter {
+    // MARK: - Singleton
+
+    static let shared = CodeHighlighter()
+
+    // MARK: - Properties
+
+    private let processingQueue: DispatchQueue
+    private let requestQueue: DispatchQueue
+    private var highlightQueue: [HighlightRequest] = []
+    private var isProcessing = false
+    private var currentRequest: HighlightRequest?
+
+    // MARK: - Initialization
+
+    private init() {
+        processingQueue = DispatchQueue.global(qos: .userInitiated)
+        requestQueue = DispatchQueue(label: "com.markdownview.highlighter.queue", qos: .userInitiated)
+    }
+
+    // MARK: - Public Methods
+
+    func submitHighlightRequest(
+        content: String,
+        language: String = "",
+        callerIdentifier: UUID,
+        theme: MarkdownTheme,
+        completion: @escaping (HighlightResult) -> Void
+    ) {
+        let request = HighlightRequest(
+            content: content,
+            language: language,
+            callerIdentifier: callerIdentifier,
+            theme: theme,
+            completion: completion
+        )
+
+        requestQueue.async { [weak self] in
+            self?.enqueueRequest(request)
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func enqueueRequest(_ request: HighlightRequest) {
+        highlightQueue.removeAll { $0.callerIdentifier == request.callerIdentifier }
+        highlightQueue.append(request)
+        if !isProcessing { processNextRequest() }
+    }
+
+    private func processNextRequest() {
+        guard !highlightQueue.isEmpty else {
+            isProcessing = false
+            return
+        }
+
+        isProcessing = true
+        let request = highlightQueue.removeFirst()
+        currentRequest = request
+
+        processingQueue.async { [weak self] in
+            self?.performHighlight(for: request)
+        }
+    }
+
+    private func performHighlight(for request: HighlightRequest) {
+        let codeTheme = request.theme.codeTheme(withFont: request.theme.fonts.code)
+        let format = AttributedStringOutputFormat(theme: codeTheme)
+
+        let result = performHighlight(
+            code: request.content,
+            language: request.language,
+            format: format
+        )
+
+        guard let attributedString = result else {
+            DispatchQueue.main.async {
+                request.completion(.error("Failed to highlight code"))
+            }
+            completeCurrentRequest()
+            return
+        }
+
+        requestQueue.async { [weak self] in
+            guard let self else { return }
+            let hasNewRequest = highlightQueue.contains { $0.callerIdentifier == request.callerIdentifier }
+            DispatchQueue.main.async {
+                if hasNewRequest {
+                    request.completion(.cancelled)
+                } else {
+                    request.completion(.success(attributedString))
                 }
             }
+            completeCurrentRequest()
+        }
+    }
 
-            let result = self?.performHighlight(code: code, language: language, format: format)
-            guard let result else { return }
-
-            let attributes = self?.extractColorAttributes(from: result)
-            guard let attributes else { return }
-
-            if currentTaskVersion != self?.taskVersion {
-                return
-            }
-
-            DispatchQueue.main.async {
-                completion(attributes)
-            }
+    private func completeCurrentRequest() {
+        requestQueue.async { [weak self] in
+            self?.currentRequest = nil
+            self?.processNextRequest()
         }
     }
 
