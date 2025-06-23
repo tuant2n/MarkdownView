@@ -42,10 +42,13 @@ public final class MarkdownTextView: UIView {
         releaseDrawingViews()
     }
 
-    public convenience init() {
-        self.init(viewProvider: DrawingViewProvider())
+    public init() {
+        viewProvider = .init()
+        super.init(frame: .zero)
+        configureSubviews()
     }
 
+    @available(*, deprecated, message: "Use init() instead.")
     public init(viewProvider: DrawingViewProvider) {
         self.viewProvider = viewProvider
         super.init(frame: .zero)
@@ -122,6 +125,18 @@ public final class MarkdownTextView: UIView {
         setNeedsLayout()
         setNeedsDisplay()
         layoutIfNeeded()
+    }
+
+    public func prepareForReuse() {
+        viewProvider.releaseAll()
+        renderedContexts = .init()
+        nodes = []
+        attributedText = nil
+        drawingViewsDirtyMarks.removeAll()
+        isDrawingViewsReady = false
+        drawingToken = .init()
+        subviews.forEach { $0.removeFromSuperview() }
+        configureSubviews()
     }
 }
 

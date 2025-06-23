@@ -48,6 +48,7 @@ final class CodeView: UIView {
     var calculatedAttributes: [NSRange: UIColor] = [:] {
         didSet { updateHighlightedContent() }
     }
+
     private let callerIdentifier = UUID()
 
     lazy var barView: UIView = .init()
@@ -140,7 +141,6 @@ final class CodeView: UIView {
         }
     }
 
-
     private func updateHighlightedContent() {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = CodeViewConfiguration.codeLineSpacing
@@ -160,8 +160,7 @@ final class CodeView: UIView {
         for (range, color) in calculatedAttributes {
             guard range.location >= 0, range.upperBound <= length else { continue }
             guard color != plainTextColor else { continue }
-            let substring = attributedContent.attributedSubstring(from: range).string
-            attributedContent.addAttributes([.foregroundColor: color,], range: range)
+            attributedContent.addAttributes([.foregroundColor: color], range: range)
         }
         textView.attributedText = attributedContent
     }

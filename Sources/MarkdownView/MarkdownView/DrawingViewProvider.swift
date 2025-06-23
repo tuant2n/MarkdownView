@@ -8,7 +8,7 @@ import UIKit
 
 private class ObjectPool<T> {
     private let factory: () -> T
-    private lazy var objects: Deque<T> = .init()
+    fileprivate lazy var objects: Deque<T> = .init()
 
     public init(_ factory: @escaping () -> T) {
         self.factory = factory
@@ -58,6 +58,19 @@ public final class DrawingViewProvider {
     }
 
     public init() {}
+
+    public func releaseAll() {
+        while let codeView = codeViewPool.objects.popLast() {
+            codeView.removeFromSuperview()
+        }
+        while let tableView = tableViewPool.objects.popLast() {
+            tableView.removeFromSuperview()
+        }
+        while let mathImageView = mathImageViewPool.objects.popLast() {
+            mathImageView.removeFromSuperview()
+            mathImageView.reset()
+        }
+    }
 
     func acquireCodeView() -> CodeView {
         codeViewPool.acquire()

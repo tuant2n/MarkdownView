@@ -125,7 +125,7 @@ final class CodeHighlighter {
             }
         }
     }
-    
+
     private func extractColorAttributes(from attributedString: NSAttributedString) -> [NSRange: UIColor] {
         var attributes: [NSRange: UIColor] = [:]
 
