@@ -181,89 +181,44 @@ struct Content: UIViewControllerRepresentable {
 }
 
 let testDocument = ###"""
-# 代码块测试
+在 Markdown 中，原生语法不支持 `<br>` 换行，但部分渲染器（如 GitHub Flavored Markdown 或某些解析器）可能支持。以下是测试表格渲染的示例：
 
-以下是多种语言的代码块示例：
+### 基础表格测试
 
-```python
-# Python 示例
-def hello(name):
-    print(f"Hello, {name}!")
-hello("World")
-```
+| 语法       | 效果          | 备注               |
+|------------|---------------|--------------------|
+| **加粗**   | 加粗文本      | 字体加粗           |
+| *斜体*     | 斜体文本      | 字体倾斜           |
+| `代码`     | 内联代码      | 单行代码块         |
+| ---        | 分割线        | 需单独一行         |
 
-```swift
-// Swift 示例
-import Foundation
-print("Hello, Swift!")
-```
 
-```c++
-// C++ 示例
-#include <iostream>
-int main() {
-    std::cout << "Hello, C++!" << std::endl;
-    return 0;
-}
-```
+### 换行测试（可能不生效）
 
-```javascript
-// JavaScript 示例
-function greet(name) {
-    console.log(`Hello, ${name}!`);
-}
-greet('JavaScript');
-```
+| 场景           | 输入示例       | 预期效果              |
+|----------------|----------------|-----------------------|
+| 硬换行<br>测试 | 行1<br>行2     | 显示为两行文本        |
+| 空格换行       | 行1<br>行2 | 需两个以上空格 + 换行 |
 
-```markdown
-# Markdown 示例
-- 列表项 1
-- 列表项 2
 
-**加粗文本**
-```
+### 特殊内容测试
 
-```json
-{
-  "key": "value",
-  "number": 123
-}
-```
+| 类型        | 示例                      | 说明                     |
+|-------------|---------------------------|--------------------------|
+| 链接        | [Google](https://google.com) | 超链接                   |
+| 图片        | `![alt](image.png)`       | 需替换为真实图片路径     |
+| 表格嵌套    | 不支持                    | 需用HTML实现             |
 
-```html
-<!-- HTML 示例 -->
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>Hello, HTML!</h1>
-  </body>
-</html>
-```
 
-```bash
-# Bash 示例
-echo "Hello, Bash!"
-```
+### 测试建议
+1. 复制上述内容到你的Markdown渲染环境
+2. 检查以下功能是否正常：
+   - 加粗/斜体/代码高亮
+   - 表格边框对齐
+   - 换行效果（部分工具需开启HTML支持）
+3. 如果`<br>`无效，可尝试：
+   - 改用HTML表格
+   - 使用两个空格 + 换行符（部分解析器支持）
 
-```go
-// Go 示例
-package main
-import "fmt"
-func main() {
-    fmt.Println("Hello, Go!")
-}
-```
-
-```sql
--- SQL 示例
-SELECT * FROM users WHERE active = 1;
-```
-
-```yaml
-# YAML 示例
-name: example
-version: 1.0.0
-description: 示例 YAML 文件
-```
-
+如果需要更复杂的表格（如合并单元格），建议直接使用HTML编写。
 """###

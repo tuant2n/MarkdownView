@@ -22,7 +22,7 @@ final class TableView: UIView {
 
     // MARK: - Properties
 
-    var contents: [Rows] = [] {
+    private(set) var contents: [Rows] = [] {
         didSet {
             configureCells()
             setNeedsLayout()
@@ -62,6 +62,23 @@ final class TableView: UIView {
         scrollView.showsHorizontalScrollIndicator = false
         addSubview(scrollView)
         scrollView.addSubview(gridView)
+    }
+
+    public func setContents(_ contents: [Rows]) {
+        // replace <br> in each items with newline characters
+        var builder = contents
+        for x in 0 ..< contents.count {
+            for y in 0 ..< contents[x].count {
+                let content = contents[x][y]
+                let processedContent = processContent(
+                    input: content,
+                    replacing: "<br>",
+                    with: "\n"
+                )
+                builder[x][y] = processedContent
+            }
+        }
+        self.contents = builder
     }
 
     // MARK: - Layout
@@ -135,5 +152,19 @@ final class TableView: UIView {
 
         gridView.padding = tableViewPadding
         gridView.update(widths: widths, heights: heights)
+    }
+
+    private func processContent(
+        input: NSAttributedString,
+        replacing occurs: String,
+        with replaced: String
+    ) -> NSMutableAttributedString {
+        let mutableAttributedString = input.mutableCopy() as! NSMutableAttributedString
+        let mutableString = mutableAttributedString.mutableString
+        while mutableString.contains(occurs) {
+            let rangeOfStringToBeReplaced = mutableString.range(of: occurs)
+            mutableAttributedString.replaceCharacters(in: rangeOfStringToBeReplaced, with: replaced)
+        }
+        return mutableAttributedString
     }
 }

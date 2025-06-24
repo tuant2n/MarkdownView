@@ -112,7 +112,7 @@ final class BlockProcessor {
                 rawCell.content.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
             }
         }
-        tableView.contents = contents
+        tableView.setContents(contents)
         return withParagraph { paragraph in
             paragraph.minimumLineHeight = tableView.intrinsicContentHeight
         } content: {
@@ -123,7 +123,7 @@ final class BlockProcessor {
                     $0.map(\.string).joined(separator: "\t")
                 }.joined(separator: "\n") + "\n")),
                 .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
-                    tableView.contents = contents
+                    tableView.setContents(contents)
                     drawingCallback?(context, line, lineOrigin)
                 }),
                 .contextView: tableView,
