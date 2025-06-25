@@ -32,6 +32,7 @@ final class TableView: UIView {
     private var cellManager = TableViewCellManager()
     private var widths: [CGFloat] = []
     private var heights: [CGFloat] = []
+    private var theme: MarkdownTheme = .default
 
     // MARK: - Computed Properties
 
@@ -60,6 +61,7 @@ final class TableView: UIView {
     private func configureSubviews() {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.backgroundColor = .clear
         addSubview(scrollView)
         scrollView.addSubview(gridView)
     }
@@ -79,6 +81,16 @@ final class TableView: UIView {
             }
         }
         self.contents = builder
+    }
+
+    public func setTheme(_ theme: MarkdownTheme) {
+        self.theme = theme
+        updateThemeAppearance()
+    }
+
+    private func updateThemeAppearance() {
+        gridView.setTheme(theme)
+        cellManager.setTheme(theme)
     }
 
     // MARK: - Layout
@@ -140,6 +152,7 @@ final class TableView: UIView {
     // MARK: - Cell Configuration
 
     private func configureCells() {
+        cellManager.setTheme(theme)
         cellManager.configureCells(
             for: contents,
             in: scrollView,
@@ -152,6 +165,11 @@ final class TableView: UIView {
 
         gridView.padding = tableViewPadding
         gridView.update(widths: widths, heights: heights)
+
+        // Add header background for first row
+        if numberOfRows > 0 {
+            gridView.setHeaderRow(true)
+        }
     }
 
     private func processContent(

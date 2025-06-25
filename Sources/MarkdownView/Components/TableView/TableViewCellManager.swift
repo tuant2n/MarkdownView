@@ -16,6 +16,7 @@ final class TableViewCellManager {
     private(set) var cellSizes: [CGSize] = []
     private(set) var widths: [CGFloat] = []
     private(set) var heights: [CGFloat] = []
+    private var theme: MarkdownTheme = .default
 
     // MARK: - Cell Configuration
 
@@ -41,10 +42,12 @@ final class TableViewCellManager {
 
             for (column, cellString) in rowContent.enumerated() {
                 let index = row * rowContent.count + column
+                let isHeaderCell = row == 0
                 let cell = createOrUpdateCell(
                     at: index,
                     with: cellString,
                     maximumWidth: maximumCellWidth,
+                    isHeader: isHeaderCell,
                     in: containerView
                 )
 
@@ -60,12 +63,20 @@ final class TableViewCellManager {
         }
     }
 
+    // MARK: - Public Methods
+
+    func setTheme(_ theme: MarkdownTheme) {
+        self.theme = theme
+        updateCellsAppearance()
+    }
+
     // MARK: - Private Methods
 
     private func createOrUpdateCell(
         at index: Int,
         with attributedText: NSAttributedString,
         maximumWidth: CGFloat,
+        isHeader: Bool,
         in containerView: UIView
     ) -> LTXLabel {
         let cell: LTXLabel
@@ -82,6 +93,13 @@ final class TableViewCellManager {
         }
 
         cell.attributedText = attributedText
+
+        if isHeader {
+            applyCellHeaderStyling(to: cell)
+        } else {
+            applyCellNormalStyling(to: cell)
+        }
+
         return cell
     }
 
@@ -91,5 +109,53 @@ final class TableViewCellManager {
             width: ceil(contentSize.width) + cellPadding * 2,
             height: ceil(contentSize.height) + cellPadding * 2
         )
+    }
+
+    private func applyCellHeaderStyling(to cell: LTXLabel) {
+        if let attributedText = cell.attributedText.mutableCopy() as? NSMutableAttributedString {
+            let range = NSRange(location: 0, length: attributedText.length)
+
+            attributedText.enumerateAttribute(.font, in: range, options: []) {
+                (value, subRange, _) in
+                if let existingFont = value as? UIFont {
+                    let boldFont = UIFont.boldSystemFont(ofSize: existingFont.pointSize)
+                    attributedText.addAttribute(.font, value: boldFont, range: subRange)
+                } else {
+                    attributedText.addAttribute(.font, value: theme.fonts.bold, range: subRange)
+                }
+            }
+
+            cell.attributedText = attributedText
+        }
+    }
+
+    private func applyCellNormalStyling(to cell: LTXLabel) {
+        if let attributedText = cell.attributedText.mutableCopy() as? NSMutableAttributedString {
+            let range = NSRange(location: 0, length: attributedText.length)
+
+            attributedText.enumerateAttribute(.foregroundColor, in: range, options: []) {
+                (value, subRange, _) in
+                if value == nil {
+                    attributedText.addAttribute(
+                        .foregroundColor, value: theme.colors.body, range: subRange)
+                }
+            }
+
+            cell.attributedText = attributedText
+        }
+    }
+
+    private func updateCellsAppearance() {
+        for (index, cell) in cells.enumerated() {
+            let numberOfColumns = widths.count
+            let row = index / numberOfColumns
+            let isHeaderCell = row == 0
+
+            if isHeaderCell {
+                applyCellHeaderStyling(to: cell)
+            } else {
+                applyCellNormalStyling(to: cell)
+            }
+        }
     }
 }

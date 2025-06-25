@@ -9,9 +9,9 @@ import Foundation
 import Splash
 import UIKit
 
-public extension MarkdownTheme {
-    static var `default`: MarkdownTheme = .init()
-    static let codeScale = 0.85
+extension MarkdownTheme {
+    public static var `default`: MarkdownTheme = .init()
+    public static let codeScale = 0.85
 }
 
 public struct MarkdownTheme: Equatable {
@@ -36,10 +36,12 @@ public struct MarkdownTheme: Equatable {
 
     public struct Colors: Equatable {
         public var body = UIColor.label
-        public var highlight = UIColor(named: "AccentColor")
+        public var highlight =
+            UIColor(named: "AccentColor")
             ?? UIColor(named: "accentColor")
             ?? .systemOrange
-        public var emphasis = UIColor(named: "AccentColor")
+        public var emphasis =
+            UIColor(named: "AccentColor")
             ?? UIColor(named: "accentColor")
             ?? .systemOrange
         public var code = UIColor.label
@@ -63,18 +65,29 @@ public struct MarkdownTheme: Equatable {
 
     public var sizes: Sizes = .init()
 
+    public struct Table: Equatable {
+        public var cornerRadius: CGFloat = 8
+        public var borderWidth: CGFloat = 1
+        public var borderColor = UIColor.separator
+        public var headerBackgroundColor = UIColor.systemGray6
+        public var cellBackgroundColor = UIColor.systemBackground
+    }
+
+    public var table: Table = .init()
+
     public init() {}
 }
 
-public extension MarkdownTheme {
-    static var defaultValueFont: Fonts { Fonts() }
-    static var defaultValueColor: Colors { Colors() }
-    static var defaultValueSpacing: Spacings { Spacings() }
-    static var defaultValueSize: Sizes { Sizes() }
+extension MarkdownTheme {
+    public static var defaultValueFont: Fonts { Fonts() }
+    public static var defaultValueColor: Colors { Colors() }
+    public static var defaultValueSpacing: Spacings { Spacings() }
+    public static var defaultValueSize: Sizes { Sizes() }
+    public static var defaultValueTable: Table { Table() }
 }
 
-public extension MarkdownTheme {
-    enum FontScale: String, CaseIterable {
+extension MarkdownTheme {
+    public enum FontScale: String, CaseIterable {
         case tiny
         case small
         case middle
@@ -83,8 +96,8 @@ public extension MarkdownTheme {
     }
 }
 
-public extension MarkdownTheme.FontScale {
-    var offset: Int {
+extension MarkdownTheme.FontScale {
+    public var offset: Int {
         switch self {
         case .tiny: -4
         case .small: -2
@@ -94,14 +107,14 @@ public extension MarkdownTheme.FontScale {
         }
     }
 
-    func scale(_ font: UIFont) -> UIFont {
+    public func scale(_ font: UIFont) -> UIFont {
         let size = max(4, font.pointSize + CGFloat(offset))
         return font.withSize(size)
     }
 }
 
-public extension MarkdownTheme {
-    mutating func scaleFont(by scale: FontScale) {
+extension MarkdownTheme {
+    public mutating func scaleFont(by scale: FontScale) {
         let defaultFont = Self.defaultValueFont
         fonts.body = scale.scale(defaultFont.body)
         fonts.codeInline = scale.scale(defaultFont.codeInline)
@@ -112,7 +125,7 @@ public extension MarkdownTheme {
         fonts.title = scale.scale(defaultFont.title)
     }
 
-    mutating func align(to pointSize: CGFloat) {
+    public mutating func align(to pointSize: CGFloat) {
         fonts.body = fonts.body.withSize(pointSize)
         fonts.codeInline = fonts.codeInline.withSize(pointSize)
         fonts.bold = fonts.bold.withSize(pointSize).bold
