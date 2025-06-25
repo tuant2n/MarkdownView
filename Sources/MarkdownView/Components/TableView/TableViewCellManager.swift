@@ -116,7 +116,7 @@ final class TableViewCellManager {
             let range = NSRange(location: 0, length: attributedText.length)
 
             attributedText.enumerateAttribute(.font, in: range, options: []) {
-                (value, subRange, _) in
+                value, subRange, _ in
                 if let existingFont = value as? UIFont {
                     let boldFont = UIFont.boldSystemFont(ofSize: existingFont.pointSize)
                     attributedText.addAttribute(.font, value: boldFont, range: subRange)
@@ -134,10 +134,11 @@ final class TableViewCellManager {
             let range = NSRange(location: 0, length: attributedText.length)
 
             attributedText.enumerateAttribute(.foregroundColor, in: range, options: []) {
-                (value, subRange, _) in
+                value, subRange, _ in
                 if value == nil {
                     attributedText.addAttribute(
-                        .foregroundColor, value: theme.colors.body, range: subRange)
+                        .foregroundColor, value: theme.colors.body, range: subRange
+                    )
                 }
             }
 

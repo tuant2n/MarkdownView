@@ -90,7 +90,8 @@ final class GridView: UIView {
         )
 
         let backgroundPath = UIBezierPath(
-            roundedRect: backgroundRect, cornerRadius: max(0, cornerRadius - lineWidth))
+            roundedRect: backgroundRect, cornerRadius: max(0, cornerRadius - lineWidth)
+        )
         backgroundLayer.path = backgroundPath.cgPath
     }
 
@@ -109,7 +110,7 @@ final class GridView: UIView {
 
         let outerPath = UIBezierPath(roundedRect: outerRect, cornerRadius: cornerRadius)
         path.append(outerPath)
-        
+
         // Draw vertical lines
         var x: CGFloat = padding
         for (index, width) in widths.enumerated() {
@@ -134,7 +135,7 @@ final class GridView: UIView {
     }
 
     private func drawHeaderBackground() {
-        guard hasHeaderRow && !heights.isEmpty else {
+        guard hasHeaderRow, !heights.isEmpty else {
             headerBackgroundLayer.path = nil
             return
         }
@@ -159,13 +160,15 @@ final class GridView: UIView {
             withCenter: CGPoint(
                 x: headerRect.minX + adjustedCornerRadius, y: headerRect.minY + adjustedCornerRadius
             ),
-            radius: adjustedCornerRadius, startAngle: .pi, endAngle: 3 * .pi / 2, clockwise: true)
+            radius: adjustedCornerRadius, startAngle: .pi, endAngle: 3 * .pi / 2, clockwise: true
+        )
         path.addLine(to: CGPoint(x: headerRect.maxX - adjustedCornerRadius, y: headerRect.minY))
         path.addArc(
             withCenter: CGPoint(
                 x: headerRect.maxX - adjustedCornerRadius, y: headerRect.minY + adjustedCornerRadius
             ),
-            radius: adjustedCornerRadius, startAngle: 3 * .pi / 2, endAngle: 0, clockwise: true)
+            radius: adjustedCornerRadius, startAngle: 3 * .pi / 2, endAngle: 0, clockwise: true
+        )
         path.addLine(to: CGPoint(x: headerRect.maxX, y: headerRect.maxY))
         path.addLine(to: CGPoint(x: headerRect.minX, y: headerRect.maxY))
         path.close()
@@ -189,7 +192,7 @@ final class GridView: UIView {
     }
 
     func setHeaderRow(_ hasHeader: Bool) {
-        self.hasHeaderRow = hasHeader
+        hasHeaderRow = hasHeader
         setNeedsLayout()
     }
 }
