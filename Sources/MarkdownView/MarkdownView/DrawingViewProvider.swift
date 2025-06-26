@@ -31,9 +31,7 @@ private class ViewBox<T: UIView>: ObjectPool<T> {
     override func acquire() -> T {
         while true {
             let item = super.acquire()
-            if item.superview != nil {
-                continue
-            }
+            guard item.superview == nil else { continue }
             return item
         }
     }

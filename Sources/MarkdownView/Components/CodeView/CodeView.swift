@@ -106,9 +106,18 @@ final class CodeView: UIView {
     }
 
     private func shouldPreserveHighlight(oldValue: String?, newValue: String?) -> Bool {
-        guard let oldValue, !oldValue.isEmpty,
+        guard var oldValue, !oldValue.isEmpty,
               let newValue, !newValue.isEmpty
         else { return false }
+
+        // the view might have ``` in the end which means
+        // these characters are revoked once codeblock is completed
+        // so ignore them on comparison
+        while oldValue.hasSuffix("`") {
+            oldValue.removeLast()
+        }
+        oldValue = oldValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
         return newValue.hasPrefix(oldValue)
     }
 
