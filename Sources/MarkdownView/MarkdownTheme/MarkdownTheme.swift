@@ -71,10 +71,7 @@ public struct MarkdownTheme: Equatable {
         public var borderColor = UIColor.separator
         public var headerBackgroundColor = UIColor.systemGray6
         public var cellBackgroundColor = UIColor.clear
-        public var stripeCellBackgroundColor = UIColor(
-            light: .systemGray.withAlphaComponent(0.03),
-            dark: .systemGray.withAlphaComponent(0.03)
-        )
+        public var stripeCellBackgroundColor = UIColor.systemGray.withAlphaComponent(0.03)
     }
 
     public var table: Table = .init()
