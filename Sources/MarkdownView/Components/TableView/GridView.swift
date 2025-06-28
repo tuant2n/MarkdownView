@@ -17,6 +17,7 @@ final class GridView: UIView {
     private lazy var shapeLayer: CAShapeLayer = .init()
     private lazy var headerBackgroundLayer: CAShapeLayer = .init()
     private lazy var backgroundLayer: CAShapeLayer = .init()
+    private lazy var stripeLayer: CAShapeLayer = .init()
     var padding: CGFloat = 2
     private var theme: MarkdownTheme = .default
     private var hasHeaderRow: Bool = false
@@ -39,8 +40,13 @@ final class GridView: UIView {
         backgroundLayer.lineWidth = 0
         layer.addSublayer(backgroundLayer)
 
+        // stripe layer
+        stripeLayer.fillColor = theme.table.stripeCellBackgroundColor.cgColor
+        layer.addSublayer(stripeLayer)
+
         // header background
         headerBackgroundLayer.fillColor = theme.table.headerBackgroundColor.cgColor
+        stripeLayer.fillColor = theme.table.stripeCellBackgroundColor.cgColor
         layer.addSublayer(headerBackgroundLayer)
 
         // borders
@@ -62,6 +68,7 @@ final class GridView: UIView {
         backgroundLayer.fillColor = theme.table.cellBackgroundColor.cgColor
         backgroundLayer.strokeColor = UIColor.clear.cgColor
         backgroundLayer.lineWidth = 0
+        stripeLayer.fillColor = theme.table.stripeCellBackgroundColor.cgColor
         shapeLayer.strokeColor = theme.table.borderColor.cgColor
         shapeLayer.lineWidth = theme.table.borderWidth
         headerBackgroundLayer.fillColor = theme.table.headerBackgroundColor.cgColor
@@ -72,7 +79,9 @@ final class GridView: UIView {
         backgroundLayer.frame = bounds
         shapeLayer.frame = bounds
         headerBackgroundLayer.frame = bounds
+        stripeLayer.frame = bounds
         drawBackground()
+        drawStripeRows()
         drawGrid()
         drawHeaderBackground()
     }
@@ -93,6 +102,51 @@ final class GridView: UIView {
             roundedRect: backgroundRect, cornerRadius: max(0, cornerRadius - lineWidth)
         )
         backgroundLayer.path = backgroundPath.cgPath
+    }
+
+    private func drawStripeRows() {
+        let path = UIBezierPath()
+        let lineWidth = theme.table.borderWidth
+
+        var y: CGFloat = padding
+        if hasHeaderRow {
+            guard !heights.isEmpty else {
+                stripeLayer.path = nil
+                return
+            }
+            y += heights[0]
+        }
+
+        let startRow = hasHeaderRow ? 1 : 0
+        for i in startRow..<heights.count {
+            let dataRowIndex = i - startRow
+            if dataRowIndex % 2 == 1 {
+                let stripeRect = CGRect(
+                    x: padding + lineWidth,
+                    y: y,
+                    width: totalWidth - (lineWidth * 2),
+                    height: heights[i]
+                )
+                path.append(UIBezierPath(rect: stripeRect))
+            }
+            y += heights[i]
+        }
+
+        let cornerRadius = theme.table.cornerRadius
+        let backgroundRect = CGRect(
+            x: padding + lineWidth,
+            y: padding + lineWidth,
+            width: totalWidth - lineWidth * 2,
+            height: totalHeight - lineWidth * 2
+        )
+        let clipPath = UIBezierPath(
+            roundedRect: backgroundRect, cornerRadius: max(0, cornerRadius - lineWidth)
+        )
+        let mask = CAShapeLayer()
+        mask.path = clipPath.cgPath
+        stripeLayer.mask = mask
+
+        stripeLayer.path = path.cgPath
     }
 
     private func drawGrid() {
