@@ -78,8 +78,7 @@ final class BlockProcessor {
         } content: {
             let codeView = viewProvider.acquireCodeView()
             let theme = theme
-            var lang = language ?? "plaintext"
-            if lang.isEmpty { lang = "plaintext" }
+            let lang = language ?? ""
 
             codeView.theme = theme
             codeView.content = content
