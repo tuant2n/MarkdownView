@@ -49,7 +49,7 @@ public class MarkdownParser {
             }
         }
         var blocks = dumpBlocks(root: nodes)
-        blocks = processInlineMathBlocks(blocks, mathContext: math)
+        blocks = finalizeMathBlocks(blocks, mathContext: math)
         return .init(document: blocks, mathContext: math.indexedMathContent)
     }
 }

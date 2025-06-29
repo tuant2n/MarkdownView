@@ -11,11 +11,13 @@
 		507C16722D2719F100B478D2 /* MarkdownView in Frameworks */ = {isa = PBXBuildFile; productRef = 507C16712D2719F100B478D2 /* MarkdownView */; };
 		5084C6742D281A41007310F0 /* LookinServer in Frameworks */ = {isa = PBXBuildFile; productRef = 5084C6732D281A41007310F0 /* LookinServer */; };
 		50A350BB2DE4B651008F094E /* MarkdownParser in Frameworks */ = {isa = PBXBuildFile; productRef = 50A350BA2DE4B651008F094E /* MarkdownParser */; };
+		50C466DA2E11310E00A6B17C /* TestDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C466D92E11310E00A6B17C /* TestDocument.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		50219C652D3E2304006CB93C /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		505E99EA2D26D8380014A6D3 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		50C466D92E11310E00A6B17C /* TestDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDocument.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				50219C652D3E2304006CB93C /* App.swift */,
+				50C466D92E11310E00A6B17C /* TestDocument.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -165,6 +168,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				50C466DA2E11310E00A6B17C /* TestDocument.swift in Sources */,
 				50219C662D3E2304006CB93C /* App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

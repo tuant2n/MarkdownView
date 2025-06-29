@@ -118,7 +118,7 @@ final class GridView: UIView {
         }
 
         let startRow = hasHeaderRow ? 1 : 0
-        for i in startRow..<heights.count {
+        for i in startRow ..< heights.count {
             let dataRowIndex = i - startRow
             if dataRowIndex % 2 == 1 {
                 let stripeRect = CGRect(

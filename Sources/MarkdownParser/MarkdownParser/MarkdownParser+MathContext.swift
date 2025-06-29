@@ -109,46 +109,60 @@ private let mathPatternWithinBlock: NSRegularExpression? = {
 }()
 
 extension MarkdownParser {
-    func processInlineMathBlocks(_ nodes: [MarkdownBlockNode], mathContext: MathContext) -> [MarkdownBlockNode] {
-        nodes.map { processInlineMathBlock($0, mathContext: mathContext) }.flatMap(\.self)
+    func finalizeMathBlocks(_ nodes: [MarkdownBlockNode], mathContext: MathContext) -> [MarkdownBlockNode] {
+        nodes.map { finalizeMathBlocks($0, mathContext: mathContext) }.flatMap(\.self)
     }
 
-    func processInlineMathBlock(_ node: MarkdownBlockNode, mathContext: MathContext) -> [MarkdownBlockNode] {
+    func finalizeMathBlocks(_ node: MarkdownBlockNode, mathContext: MathContext) -> [MarkdownBlockNode] {
         switch node {
         case let .blockquote(children):
-            return [.blockquote(children: processInlineMathBlocks(children, mathContext: mathContext))]
+            return [.blockquote(children: finalizeMathBlocks(children, mathContext: mathContext))]
         case let .bulletedList(isTight, items):
             let processedItems = items.map { item in
-                RawListItem(children: processInlineMathBlocks(item.children, mathContext: mathContext))
+                RawListItem(children: finalizeMathBlocks(item.children, mathContext: mathContext))
             }
             return [.bulletedList(isTight: isTight, items: processedItems)]
         case let .numberedList(isTight, start, items):
             let processedItems = items.map { item in
-                RawListItem(children: processInlineMathBlocks(item.children, mathContext: mathContext))
+                RawListItem(children: finalizeMathBlocks(item.children, mathContext: mathContext))
             }
             return [.numberedList(isTight: isTight, start: start, items: processedItems)]
         case let .taskList(isTight, items):
             let processedItems = items.map { item in
-                RawTaskListItem(isCompleted: item.isCompleted, children: processInlineMathBlocks(item.children, mathContext: mathContext))
+                RawTaskListItem(isCompleted: item.isCompleted, children: finalizeMathBlocks(item.children, mathContext: mathContext))
             }
             return [.taskList(isTight: isTight, items: processedItems)]
         case let .paragraph(content):
-            let processedContent = processInlineMathInNodes(content, mathContext: mathContext)
+            let processedContent = finalizeInlineMathInNodes(content, mathContext: mathContext)
             return [.paragraph(content: processedContent)]
         case let .table(columnAlignments, rows):
             let processedRows = rows.map { row in
                 let processedCells = row.cells.map { cell in
-                    RawTableCell(content: processInlineMathInNodes(cell.content, mathContext: mathContext))
+                    RawTableCell(content: finalizeInlineMathInNodes(cell.content, mathContext: mathContext))
                 }
                 return RawTableRow(cells: processedCells)
             }
             return [.table(columnAlignments: columnAlignments, rows: processedRows)]
-        default:
-            return [node]
+        case let .codeBlock(language, content):
+            // restore math content in code blocks if found, we dont want `math://` links in code blocks
+            return [.codeBlock(fenceInfo: language, content: restore(content: content, mathContext: mathContext))]
+        case let .heading(level: level, content: content):
+            return [.heading(level: level, content: finalizeInlineMathInNodes(content, mathContext: mathContext))]
+        case .thematicBreak:
+            return [.thematicBreak]
         }
     }
 
-    private func processInlineMathInNodes(_ nodes: [MarkdownInlineNode], mathContext: MathContext) -> [MarkdownInlineNode] {
+    private func restore(content: String, mathContext: MathContext) -> String {
+        var content = content
+        for (index, mathContent) in mathContext.indexedMathContent.sorted(by: { $0.key < $1.key }) {
+            let placeholder = "`math://\(index)`"
+            content = content.replacingOccurrences(of: placeholder, with: mathContent)
+        }
+        return content
+    }
+
+    private func finalizeInlineMathInNodes(_ nodes: [MarkdownInlineNode], mathContext: MathContext) -> [MarkdownInlineNode] {
         var result: [MarkdownInlineNode] = []
 
         for node in nodes {
