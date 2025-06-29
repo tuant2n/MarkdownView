@@ -12,16 +12,18 @@ import UIKit
 
 public enum MathRenderer {
     static let renderCache = LRUCache<String, UIImage>(countLimit: 256)
-    
+
     private static func preprocessLatex(_ latex: String) -> String {
-        return latex
+        latex
             .replacingOccurrences(of: "\\implies", with: "\\Rightarrow")
             .replacingOccurrences(of: "\\begin{align}", with: "\\begin{aligned}")
             .replacingOccurrences(of: "\\end{align}", with: "\\end{aligned}")
             .replacingOccurrences(of: "\\begin{align*}", with: "\\begin{aligned}")
             .replacingOccurrences(of: "\\end{align*}", with: "\\end{aligned}")
+            .replacingOccurrences(of: "\\begin{cases}", with: "\\left\\{\\begin{matrix}")
+            .replacingOccurrences(of: "\\end{cases}", with: "\\end{matrix}\\right.")
     }
-    
+
     public static func renderToImage(
         latex: String,
         fontSize: CGFloat = 16,
@@ -30,7 +32,7 @@ public enum MathRenderer {
         if let cachedImage = renderCache.value(forKey: latex) {
             return cachedImage
         }
-        
+
         let processedLatex = preprocessLatex(latex)
 
         let mathImage = MTMathImage(

@@ -49,7 +49,7 @@ final class MathImageView: UIView {
         addSubview(imageView)
         setupContextMenu()
     }
-    
+
     private func setupContextMenu() {
         let interaction = UIContextMenuInteraction(delegate: self)
         addInteraction(interaction)
@@ -97,8 +97,8 @@ final class MathImageView: UIView {
 // MARK: - UIContextMenuInteractionDelegate
 
 extension MathImageView: UIContextMenuInteractionDelegate {
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(
+    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+        UIContextMenuConfiguration(
             identifier: nil,
             previewProvider: { [weak self] in
                 self?.createPreviewController()
@@ -108,22 +108,25 @@ extension MathImageView: UIContextMenuInteractionDelegate {
             }
         )
     }
-    
+
     private func createPreviewController() -> UIViewController? {
         guard let image = _image else { return nil }
-        
         let previewController = UIViewController()
         let previewImageView = UIImageView(image: image)
+        previewImageView.tintColor = .label
         previewImageView.contentMode = .scaleAspectFit
         previewImageView.backgroundColor = .systemBackground
-        previewImageView.tintColor = theme.colors.body
-        
-        previewController.view = previewImageView
-        previewController.preferredContentSize = image.size
-        
+        previewImageView.translatesAutoresizingMaskIntoConstraints = false
+        previewController.view.addSubview(previewImageView)
+        NSLayoutConstraint.activate([
+            previewImageView.leftAnchor.constraint(equalTo: previewController.view.leftAnchor, constant: 32),
+            previewImageView.rightAnchor.constraint(equalTo: previewController.view.rightAnchor, constant: -32),
+            previewImageView.topAnchor.constraint(equalTo: previewController.view.topAnchor, constant: 32),
+            previewImageView.bottomAnchor.constraint(equalTo: previewController.view.bottomAnchor, constant: -32),
+        ])
         return previewController
     }
-    
+
     private func createContextMenu() -> UIMenu {
         let copyAction = UIAction(
             title: NSLocalizedString("Copy Text", bundle: .module, comment: ""),
@@ -132,7 +135,7 @@ extension MathImageView: UIContextMenuInteractionDelegate {
                 self?.copyMathText()
             }
         )
-        
+
         let copyImageAction = UIAction(
             title: NSLocalizedString("Copy Image", bundle: .module, comment: ""),
             image: UIImage(systemName: "photo.on.rectangle"),
@@ -140,14 +143,14 @@ extension MathImageView: UIContextMenuInteractionDelegate {
                 self?.copyImage()
             }
         )
-        
+
         return UIMenu(title: "", children: [copyAction, copyImageAction])
     }
-    
+
     private func copyMathText() {
         UIPasteboard.general.string = _text
     }
-    
+
     private func copyImage() {
         guard let image = _image else { return }
         UIPasteboard.general.image = image
