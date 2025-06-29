@@ -47,6 +47,12 @@ final class MathImageView: UIView {
     private func configureSubviews() {
         backgroundColor = .clear
         addSubview(imageView)
+        setupContextMenu()
+    }
+    
+    private func setupContextMenu() {
+        let interaction = UIContextMenuInteraction(delegate: self)
+        addInteraction(interaction)
     }
 
     // MARK: - Layout
@@ -85,6 +91,66 @@ final class MathImageView: UIView {
             imageView.image = image.withRenderingMode(.alwaysTemplate)
             imageView.tintColor = theme.colors.body
         }
+    }
+}
+
+// MARK: - UIContextMenuInteractionDelegate
+
+extension MathImageView: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(
+            identifier: nil,
+            previewProvider: { [weak self] in
+                self?.createPreviewController()
+            },
+            actionProvider: { [weak self] _ in
+                self?.createContextMenu()
+            }
+        )
+    }
+    
+    private func createPreviewController() -> UIViewController? {
+        guard let image = _image else { return nil }
+        
+        let previewController = UIViewController()
+        let previewImageView = UIImageView(image: image)
+        previewImageView.contentMode = .scaleAspectFit
+        previewImageView.backgroundColor = .systemBackground
+        previewImageView.tintColor = theme.colors.body
+        
+        previewController.view = previewImageView
+        previewController.preferredContentSize = image.size
+        
+        return previewController
+    }
+    
+    private func createContextMenu() -> UIMenu {
+        let copyAction = UIAction(
+            title: NSLocalizedString("Copy Text", bundle: .module, comment: ""),
+            image: UIImage(systemName: "doc.on.doc"),
+            handler: { [weak self] _ in
+                self?.copyMathText()
+            }
+        )
+        
+        let copyImageAction = UIAction(
+            title: NSLocalizedString("Copy Image", bundle: .module, comment: ""),
+            image: UIImage(systemName: "photo.on.rectangle"),
+            handler: { [weak self] _ in
+                self?.copyImage()
+            }
+        )
+        
+        return UIMenu(title: "", children: [copyAction, copyImageAction])
+    }
+    
+    private func copyMathText() {
+        UIPasteboard.general.string = _text
+    }
+    
+    private func copyImage() {
+        guard let image = _image else { return }
+        UIPasteboard.general.image = image
     }
 }
 

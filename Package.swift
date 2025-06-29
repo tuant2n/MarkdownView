@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "MarkdownView",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v13),
         .macCatalyst(.v13),
