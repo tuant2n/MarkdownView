@@ -23,6 +23,7 @@ public enum MathRenderer {
             .replacingOccurrences(of: "\\end{align*}", with: "\\end{aligned}")
             .replacingOccurrences(of: "\\begin{cases}", with: "\\left\\{\\begin{matrix}")
             .replacingOccurrences(of: "\\end{cases}", with: "\\end{matrix}\\right.")
+            .replacingBoxedCommand()
     }
 
     public static func renderToImage(
@@ -58,5 +59,39 @@ private extension String {
     func substring(with range: NSRange) -> String? {
         guard let swiftRange = Range(range, in: self) else { return nil }
         return String(self[swiftRange])
+    }
+    
+    func replacingBoxedCommand() -> String {
+        var result = self
+        while let range = result.range(of: "\\boxed{") {
+            let startIndex = range.upperBound
+            var braceCount = 1
+            var endIndex = startIndex
+            
+            // 找到匹配的右大括号
+            while endIndex < result.endIndex && braceCount > 0 {
+                let char = result[endIndex]
+                if char == "{" {
+                    braceCount += 1
+                } else if char == "}" {
+                    braceCount -= 1
+                }
+                if braceCount > 0 {
+                    endIndex = result.index(after: endIndex)
+                }
+            }
+            
+            if braceCount == 0 {
+                // 提取内容并替换整个\boxed{...}
+                let content = String(result[startIndex..<endIndex])
+                let fullRange = result.index(range.lowerBound, offsetBy: 0)...endIndex
+                result.replaceSubrange(fullRange, with: content)
+            } else {
+                // 如果没有找到匹配的括号，只移除\boxed{
+                result.replaceSubrange(range, with: "")
+                break
+            }
+        }
+        return result
     }
 }
