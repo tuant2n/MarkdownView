@@ -16,7 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections", from: "1.2.0"),
-        .package(url: "https://github.com/mgriebling/SwiftMath", from: "1.7.1"),
+        .package(url: "https://github.com/Lakr233/SwiftMath", exact: "1.7.2"),
         .package(url: "https://github.com/Lakr233/Splash", from: "0.17.0"),
         .package(url: "https://github.com/Lakr233/Litext", from: "0.5.0"),
         .package(url: "https://github.com/swiftlang/swift-cmark", from: "0.6.0"),
