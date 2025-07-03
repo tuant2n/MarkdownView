@@ -13,6 +13,7 @@ private let mathPattern: NSRegularExpression? = {
         ###"\\\\\[([\s\S]*?)\\\\\]"###, // 带转义的块级公式 \\[ ... \\]
         ###"\\\\\(([\s\S]*?)\\\\\)"###, // 带转义的行内公式 \\( ... \\)
         ###"\\\[([\s\S]*?)\\\]"###, // 单个反斜杠的块级公式 \[ ... \]
+        ###"\\\(([^`\n]*?)\\\)"###, // 单个反斜杠的块级公式 \( ... \)，中间不能有 ` 和 换行
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
