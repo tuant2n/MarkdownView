@@ -23,6 +23,7 @@ public enum MathRenderer {
             .replacingOccurrences(of: "\\end{align*}", with: "\\end{aligned}")
             .replacingOccurrences(of: "\\begin{cases}", with: "\\left\\{\\begin{matrix}")
             .replacingOccurrences(of: "\\end{cases}", with: "\\end{matrix}\\right.")
+            .replacingOccurrences(of: "\\dfrac", with: "\\frac")
             .replacingBoxedCommand()
     }
 
