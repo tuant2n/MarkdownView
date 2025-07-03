@@ -12,7 +12,7 @@ private let mathPattern: NSRegularExpression? = {
         ###"\$\$([\s\S]*?)\$\$"###, // 块级公式 $$ ... $$
         ###"\\\\\[([\s\S]*?)\\\\\]"###, // 带转义的块级公式 \\[ ... \\]
         ###"\\\\\(([\s\S]*?)\\\\\)"###, // 带转义的行内公式 \\( ... \\)
-        ###"\\\[[\s\S]*?(\\(\s|\S)+?\n)+?\\\]"###, // 带转义的块级公式 \[ ... \] 且存在多行
+        ###"\\\[([\s\S]*?)\\\]"###, // 单个反斜杠的块级公式 \[ ... \]
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
@@ -192,27 +192,33 @@ extension MarkdownParser {
         var lastEnd = 0
 
         for match in matches {
-            let contentRange = (0 ..< match.numberOfRanges)
-                .compactMap { match.range(at: $0) }
-                .sorted { $0.length > $1.length }
-                .first
-            guard let fullRange = contentRange, fullRange.location != NSNotFound else {
-                continue
+            let fullMatchRange = match.range(at: 0)
+            guard fullMatchRange.location != NSNotFound else { continue }
+            
+            // 找到第一个有效的捕获组（数学内容）
+            var mathContent: String?
+            for groupIndex in 1 ..< match.numberOfRanges {
+                let captureRange = match.range(at: groupIndex)
+                if captureRange.location != NSNotFound {
+                    mathContent = (text as NSString).substring(with: captureRange)
+                    break
+                }
             }
+            
+            guard let content = mathContent else { continue }
 
-            if fullRange.location > lastEnd {
+            if fullMatchRange.location > lastEnd {
                 let beforeText = (text as NSString).substring(
-                    with: NSRange(location: lastEnd, length: fullRange.location - lastEnd)
+                    with: NSRange(location: lastEnd, length: fullMatchRange.location - lastEnd)
                 )
                 if !beforeText.isEmpty { result.append(.text(beforeText)) }
             }
 
-            let mathContent = (text as NSString).substring(with: fullRange)
             let mathIndex = mathContext.indexedMathContent.count
-            mathContext.indexedMathContent[mathIndex] = mathContent
+            mathContext.indexedMathContent[mathIndex] = content
             result.append(.code("math://\(mathIndex)"))
 
-            lastEnd = fullRange.location + fullRange.length
+            lastEnd = fullMatchRange.location + fullMatchRange.length
         }
 
         if lastEnd < text.count {
