@@ -57,10 +57,10 @@
     {
       "identity" : "swiftmath",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mgriebling/SwiftMath",
+      "location" : "https://github.com/Lakr233/SwiftMath",
       "state" : {
-        "revision" : "606f9be66db6afe0c41c3b064723a57061723db7",
-        "version" : "1.7.1"
+        "revision" : "cfd646dcac0c5553e21ebf1ee05f9078277518bc",
+        "version" : "1.7.2"
       }
     }
   ],

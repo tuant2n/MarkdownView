@@ -15,6 +15,7 @@ public enum MathRenderer {
 
     private static func preprocessLatex(_ latex: String) -> String {
         latex
+            .replacingOccurrences(of: "\\dots", with: "\\ldots")
             .replacingOccurrences(of: "\\implies", with: "\\Rightarrow")
             .replacingOccurrences(of: "\\begin{align}", with: "\\begin{aligned}")
             .replacingOccurrences(of: "\\end{align}", with: "\\end{aligned}")
