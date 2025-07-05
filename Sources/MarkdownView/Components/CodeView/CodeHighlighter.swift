@@ -179,7 +179,7 @@ public extension CodeHighlighter {
 
         queueLock.lock()
         highlightRequestQueue.removeAll { $0.callerIdentifier == request.callerIdentifier }
-        highlightRequestQueue.insert(request, at: 0)
+        highlightRequestQueue.append(request)
         queueLock.unlock()
 
         autoreleasepool {
