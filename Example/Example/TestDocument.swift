@@ -8,231 +8,447 @@
 import Foundation
 
 let testDocument = ###"""
-好的，这是一个有趣的组合几何问题。我们来分步解决它。
+// Bubble Sort in 32 Languages
 
-问题可以概括为：
-给定点集 \\( S = \{(x, y, z) | x, y, z \in \{0, 1, \dots, n\}, x+y+z > 0\} \\)，求覆盖 \\(S\\) 中所有点，但不包含原点 \\((0,0,0)\\) 的最少平面数量。
+// 1. Swift
+```swift
+func bubbleSortSwift(_ arr: inout [Int]) {
+    for i in 0..<arr.count {
+        for j in 1..<arr.count - i {
+            if arr[j-1] > arr[j] {
+                arr.swapAt(j-1, j)
+            }
+        }
+    }
+}
+```
+- Swift 语言实现，使用 inout 参数原地排序，双重循环，内层比较并交换。
 
----
+// 2. Python
+```python
+def bubble_sort_python(arr):
+    for i in range(len(arr)):
+        for j in range(1, len(arr)-i):
+            if arr[j-1] > arr[j]:
+                arr[j-1], arr[j] = arr[j], arr[j-1]
+```
+- Python 版本，利用元组交换，语法简洁。
 
-### 最终答案
+// 3. JavaScript
+```javascript
+function bubbleSortJS(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 1; j < arr.length - i; j++) {
+            if (arr[j-1] > arr[j]) {
+                [arr[j-1], arr[j]] = [arr[j], arr[j-1]];
+            }
+        }
+    }
+}
+```
+- JavaScript 版本，使用解构赋值交换数组元素。
 
-这个问题的答案是 \\(3n\\)。
+// 4. Java
+```java
+void bubbleSortJava(int[] arr) {
+    for (int i = 0; i < arr.length; i++) {
+        for (int j = 1; j < arr.length - i; j++) {
+            if (arr[j-1] > arr[j]) {
+                int tmp = arr[j-1]; arr[j-1] = arr[j]; arr[j] = tmp;
+            }
+        }
+    }
+}
+```
+- Java 语言实现，标准 for 循环，使用临时变量交换。
 
----
+// 5. C
+```c
+void bubbleSortC(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 1; j < n - i; j++) {
+            if (arr[j-1] > arr[j]) {
+                int t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
+            }
+        }
+    }
+}
+```
+- C 语言实现，数组和长度参数，嵌套循环。
 
-### 详细解析
+// 6. C++
+```cpp
+void bubbleSortCpp(std::vector<int>& arr) {
+    for (size_t i = 0; i < arr.size(); i++) {
+        for (size_t j = 1; j < arr.size() - i; j++) {
+            if (arr[j-1] > arr[j]) std::swap(arr[j-1], arr[j]);
+        }
+    }
+}
+```
+- C++ 版本，使用 std::vector 和 std::swap。
 
-我们可以从两个方面来证明这个结论：
-1.  **上界 (Upper Bound):** 构造一个包含 \\(3n\\) 个平面的集合，证明它满足条件。
-2.  **下界 (Lower Bound):** 证明任何满足条件的平面集合都必须至少包含 \\(3n\\) 个平面。
+// 7. Go
+```go
+func bubbleSortGo(arr []int) {
+    for i := 0; i < len(arr); i++ {
+        for j := 1; j < len(arr)-i; j++ {
+            if arr[j-1] > arr[j] {
+                arr[j-1], arr[j] = arr[j], arr[j-1]
+            }
+        }
+    }
+}
+```
+- Go 语言实现，切片参数，原地交换。
 
-### 1. 上界证明（构造法）
+// 8. Rust
+```rust
+fn bubble_sort_rust(arr: &mut [i32]) {
+    for i in 0..arr.len() {
+        for j in 1..arr.len()-i {
+            if arr[j-1] > arr[j] {
+                arr.swap(j-1, j);
+            }
+        }
+    }
+}
+```
+- Rust 语言实现，切片可变引用，swap 方法。
 
-我们可以构造一个由 \\(3n\\) 个平面组成的集合，这个集合能够覆盖 \\(S\\) 中所有的点，但又不包含原点 \\((0,0,0)\\)。
+// 9. Kotlin
+```kotlin
+fun bubbleSortKotlin(arr: IntArray) {
+    for (i in arr.indices) {
+        for (j in 1 until arr.size - i) {
+            if (arr[j-1] > arr[j]) {
+                val t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t
+            }
+        }
+    }
+}
+```
+- Kotlin 语言实现，使用 until 和 indices。
 
-考虑以下三组平面：
-*   **第一组:** \\(x = i\\)，其中 \\(i \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
-*   **第二组:** \\(y = j\\)，其中 \\(j \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
-*   **第三组:** \\(z = k\\)，其中 \\(k \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
+// 10. C#
+```csharp
+void BubbleSortCSharp(int[] arr) {
+    for (int i = 0; i < arr.Length; i++) {
+        for (int j = 1; j < arr.Length - i; j++) {
+            if (arr[j-1] > arr[j]) {
+                int t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
+            }
+        }
+    }
+}
+```
+- C# 语言实现，数组参数，标准交换。
 
-总共的平面数量是 \\(n + n + n = 3n\\)。
+// 11. PHP
+```php
+function bubbleSortPHP(&$arr) {
+    for ($i = 0; $i < count($arr); $i++) {
+        for ($j = 1; $j < count($arr) - $i; $j++) {
+            if ($arr[$j-1] > $arr[$j]) {
+                $tmp = $arr[$j-1]; $arr[$j-1] = $arr[$j]; $arr[$j] = $tmp;
+            }
+        }
+    }
+}
+```
+- PHP 语言实现，引用传递数组。
 
-现在我们来验证这个平面集合是否满足题目的两个条件：
+// 12. Ruby
+```ruby
+def bubble_sort_ruby(arr)
+  arr.size.times do |i|
+    (1...(arr.size-i)).each do |j|
+      arr[j-1], arr[j] = arr[j], arr[j-1] if arr[j-1] > arr[j]
+    end
+  end
+end
+```
+- Ruby 语言实现，times 和 each 迭代，交换语法简洁。
 
-*   **条件一：并集包含 S**
-    对于任何一个点 \\(P(x_0, y_0, z_0) \in S\\)，根据 \\(S\\) 的定义，我们有 \\(x_0, y_0, z_0 \in \{0, 1, \dots, n\}\\) 并且 \\(x_0+y_0+z_0 > 0\\)。
-    \\(x_0+y_0+z_0 > 0\\) 意味着 \\(x_0, y_0, z_0\\) 中至少有一个坐标不为零。
-    *   如果 \\(x_0 \neq 0\\)，那么 \\(x_0 \in \{1, 2, \dots, n\}\\)。因此，点 \\(P\\) 位于平面 \\(x = x_0\\) 上，而这个平面在我们构造的集合中。
-    *   同理，如果 \\(y_0 \neq 0\\)，点 \\(P\\) 位于平面 \\(y = y_0\\) 上。
-    *   如果 \\(z_0 \neq 0\\)，点 \\(P\\) 位于平面 \\(z = z_0\\) 上。
-    因为至少有一个坐标不为零，所以点 \\(P\\) 必然被我们构造的 \\(3n\\) 个平面中的至少一个所覆盖。
+// 13. Perl
+```perl
+sub bubble_sort_perl {
+  my $arr = shift;
+  for my $i (0..$#$arr) {
+    for my $j (1..$#$arr-$i) {
+      ($arr->[$j-1], $arr->[$j]) = ($arr->[$j], $arr->[$j-1]) if $arr->[$j-1] > $arr->[$j];
+    }
+  }
+}
+```
+- Perl 语言实现，数组引用，交换语法。
 
-*   **条件二：不包含 (0,0,0)**
-    我们构造的平面方程为 \\(x=i, y=j, z=k\\)，其中 \\(i,j,k\\) 都属于 \\(\{1, 2, \dots, n\}\\)。
-    原点 \\((0,0,0)\\) 的坐标显然不满足任何一个方程（例如，\\(0 \neq i\\) 因为 \\(i \ge 1\\)）。
-    因此，这个平面集合不包含原点。
+// 14. Scala
+```scala
+def bubbleSortScala(arr: Array[Int]): Unit = {
+  for (i <- arr.indices)
+    for (j <- 1 until arr.length - i)
+      if (arr(j-1) > arr(j)) {
+        val t = arr(j-1); arr(j-1) = arr(j); arr(j) = t
+      }
+}
+```
+- Scala 语言实现，for 推导式，数组原地交换。
 
-**结论：** 存在一个包含 \\(3n\\) 个平面的集合满足条件，所以最小的平面数量不会超过 \\(3n\\)。
+// 15. Haskell
+```haskell
+bubbleSortHaskell :: Ord a => [a] -> [a]
+bubbleSortHaskell arr = foldl (\a _ -> pass a) arr [1..length arr]
+  where pass (x:y:xs) | x > y = y : pass (x:xs)
+        pass (x:xs) = x : pass xs
+        pass [] = []
+```
+- Haskell 语言实现，递归与高阶函数。
 
-### 2. 下界证明（多项式方法）
+// 16. Julia
+```julia
+function bubble_sort_julia!(arr)
+    for i in 1:length(arr)
+        for j in 2:(length(arr)-i+1)
+            if arr[j-1] > arr[j]
+                arr[j-1], arr[j] = arr[j], arr[j-1]
+            end
+        end
+    end
+end
+```
+- Julia 语言实现，感叹号表示原地修改。
 
-为了证明至少需要 \\(3n\\) 个平面，我们可以使用一种强大的数学工具——组合零点定理（Combinatorial Nullstellensatz）。
+// 17. Dart
+```dart
+void bubbleSortDart(List<int> arr) {
+  for (int i = 0; i < arr.length; i++) {
+    for (int j = 1; j < arr.length - i; j++) {
+      if (arr[j-1] > arr[j]) {
+        int t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
+      }
+    }
+  }
+}
+```
+- Dart 语言实现，List 参数，标准交换。
 
-假设我们找到了 \\(k\\) 个满足条件的平面。设这些平面的方程为：
-\\[ L_j(x, y, z) = a_j x + b_j y + c_j z - d_j = 0 \quad \text{for } j = 1, \dots, k \\]
-根据题意，原点 \\((0,0,0)\\) 不在任何一个平面上，这意味着 \\(L_j(0,0,0) = -d_j \neq 0\\)，所以 \\(d_j \neq 0\\) 对所有 \\(j\\) 成立。
+// 18. TypeScript
+```typescript
+function bubbleSortTS(arr: number[]): void {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 1; j < arr.length - i; j++) {
+      if (arr[j-1] > arr[j]) {
+        [arr[j-1], arr[j]] = [arr[j], arr[j-1]];
+      }
+    }
+  }
+}
+```
+- TypeScript 语言实现，类型注解，解构交换。
 
-现在，我们构造一个多项式 \\(P(x,y,z)\\) 如下：
-\\[ P(x, y, z) = \prod_{j=1}^{k} L_j(x, y, z) \\]
-这个多项式的次数 \\(\deg(P) = k\\)。
+// 19. Bash
+```bash
+bubble_sort_bash() {
+  arr=("$@")
+  for ((i=0; i<${#arr[@]}; i++)); do
+    for ((j=1; j<${#arr[@]}-i; j++)); do
+      if (( arr[j-1] > arr[j] )); then
+        tmp=${arr[j-1]}; arr[j-1]=${arr[j]}; arr[j]=${tmp}
+      fi
+    done
+  done
+  echo "${arr[@]}"
+}
+```
+- Bash 脚本实现，数组参数，循环与条件判断。
 
-这个多项式 \\(P\\) 有两个关键性质：
-1.  对于任何点 \\(v \in S\\)，\\(v\\) 至少在一个平面上，所以至少有一个 \\(L_j(v) = 0\\)。因此，\\(P(v) = 0\\)。
-2.  对于原点 \\((0,0,0)\\)，它不在任何平面上，所以 \\(L_j(0,0,0) \neq 0\\) 对所有 \\(j\\) 都成立。因此，\\(P(0,0,0) = \prod_{j=1}^{k} (-d_j) \neq 0\\)。
+// 20. R
+```r
+bubble_sort_r <- function(arr) {
+  for (i in seq_along(arr)) {
+    for (j in 2:(length(arr)-i+1)) {
+      if (arr[j-1] > arr[j]) {
+        tmp <- arr[j-1]; arr[j-1] <- arr[j]; arr[j] <- tmp
+      }
+    }
+  }
+  arr
+}
+```
+- R 语言实现，for 循环，原地交换。
 
-接下来，我们构造另一个具有相同性质的多项式：
-\\[ Q(x, y, z) = C \cdot \left( \prod_{i=1}^{n} (x-i) \right) \left( \prod_{j=1}^{n} (y-j) \right) \left( \prod_{k=1}^{n} (z-k) \right) \\]
-其中 \\(C\\) 是一个非零常数。这个多项式的次数是 \\(\deg(Q) = n+n+n = 3n\\)。
+// 21. Objective-C
+```objective-c
+void bubbleSortObjC(NSMutableArray *arr) {
+    for (int i = 0; i < arr.count; i++) {
+        for (int j = 1; j < arr.count - i; j++) {
+            if ([arr[j-1] intValue] > [arr[j] intValue]) {
+                [arr exchangeObjectAtIndex:j-1 withObjectAtIndex:j];
+            }
+        }
+    }
+}
+```
+- Objective-C 语言实现，使用 NSMutableArray 和消息传递。
 
-我们来检验多项式 \\(Q\\) 的性质：
-1.  对于任何点 \\(v=(x_0, y_0, z_0) \in S\\)，至少有一个坐标不为零。假设 \\(x_0 \neq 0\\)，则 \\(x_0 \in \{1, 2, \dots, n\}\\)。此时，第一项 \\(\prod_{i=1}^{n} (x_0-i)\\) 中必然有一个因子是 \\((x_0-x_0)=0\\)，所以 \\(Q(v)=0\\)。
-2.  对于原点 \\((0,0,0)\\)，\\(Q(0,0,0) = C \cdot (\prod_{i=1}^{n} (-i))^3 = C \cdot ((-1)^n n!)^3\\)。只要我们选择 \\(C \neq 0\\)，那么 \\(Q(0,0,0) \neq 0\\)。
+// 22. Fortran
+```fortran
+subroutine bubble_sort_fortran(arr, n)
+  integer, intent(inout) :: arr(:)
+  integer, intent(in) :: n
+  integer :: i, j, t
+  do i = 1, n
+    do j = 2, n-i+1
+      if (arr(j-1) > arr(j)) then
+        t = arr(j-1); arr(j-1) = arr(j); arr(j) = t
+      end if
+    end do
+  end do
+end subroutine
+```
+- Fortran 语言实现，子程序，数组参数。
 
-现在我们有两个多项式 \\(P\\) 和 \\(Q\\)，它们都在点集 \\(S\\) 上为零，但在原点不为零。
-根据组合零点定理的一个推论（由 Noga Alon 提出），任何具有这些性质的多项式，其次数必须至少为 \\(3n\\)。
+// 23. Pascal
+```pascal
+procedure BubbleSortPascal(var arr: array of Integer);
+var i, j, t: Integer;
+begin
+  for i := 0 to High(arr) do
+    for j := 1 to High(arr)-i do
+      if arr[j-1] > arr[j] then
+      begin
+        t := arr[j-1]; arr[j-1] := arr[j]; arr[j] := t;
+      end;
+end;
+```
+- Pascal 语言实现，过程，数组参数。
 
-这个定理的精髓在于，一个在网格 \\(\{0,1,\dots,n\}^3\\) 中除一个点外处处为零的多项式，如果要构造出来，其最低次数是固定的。我们构造的 \\(Q(x,y,z)\\) 实际上是这种多项式中一个最简洁的形式，它的最高次项是 \\(C \cdot x^n y^n z^n\\)。任何其他具有相同零点模式的多项式（如我们的 \\(P(x,y,z)\\)），在经过某种“化简”后，也必须含有这个 \\(x^n y^n z^n\\) 项，这也就限制了它的原始次数。
+// 24. Lua
+```lua
+function bubble_sort_lua(arr)
+  for i = 1, #arr do
+    for j = 2, #arr-i+1 do
+      if arr[j-1] > arr[j] then
+        arr[j-1], arr[j] = arr[j], arr[j-1]
+      end
+    end
+  end
+end
+```
+- Lua 语言实现，数组下标从 1 开始。
 
-因此，我们必须有 \\(\deg(P) \ge \deg(Q)\\)，即 \\(k \ge 3n\\)。
+// 25. Scheme
+```scheme
+(define (bubble-sort-scheme arr)
+  (let loop ((a arr) (n (length arr)))
+    (if (= n 0) a
+        (loop (let pass ((a a) (j 1))
+                (if (>= j n) a
+                    (if (> (list-ref a (- j 1)) (list-ref a j))
+                        (pass (let ((tmp (list-ref a (- j 1))))
+                                (set! (list-ref a (- j 1)) (list-ref a j))
+                                (set! (list-ref a j) tmp)
+                                a) (+ j 1))
+                        (pass a (+ j 1)))))
+              (- n 1))))
+```
+- Scheme 语言实现，递归与列表操作。
 
-**结论：** 任何满足条件的平面集合必须至少包含 \\(3n\\) 个平面。
+// 26. F#
+```fsharp
+let bubbleSortF arr =
+  for i in 0 .. Array.length arr - 1 do
+    for j in 1 .. Array.length arr - i - 1 do
+      if arr.[j-1] > arr.[j] then
+        let t = arr.[j-1]
+        arr.[j-1] <- arr.[j]
+        arr.[j] <- t
+```
+- F# 语言实现，for 循环，数组可变。
 
----
+// 27. OCaml
+```ocaml
+let bubble_sort_ocaml arr =
+  for i = 0 to Array.length arr - 1 do
+    for j = 1 to Array.length arr - i - 1 do
+      if arr.(j-1) > arr.(j) then (
+        let t = arr.(j-1) in arr.(j-1) <- arr.(j); arr.(j) <- t)
+    done
+  done
+;;
+```
+- OCaml 语言实现，数组下标和可变性。
 
-### 总结
+// 28. D
+```d
+void bubbleSortD(int[] arr) {
+    foreach (i; 0 .. arr.length) {
+        foreach (j; 1 .. arr.length - i) {
+            if (arr[j-1] > arr[j]) {
+                auto t = arr[j-1]; arr[j-1] = arr[j]; arr[j] = t;
+            }
+        }
+    }
+}
+```
+- D 语言实现，foreach 语法。
 
-*   我们证明了 \\(3n\\) 个平面是**足够**的（上界）。
-*   我们证明了 \\(3n\\) 个平面是**必要**的（下界）。
+// 29. Visual Basic
+```vbnet
+Sub BubbleSortVB(arr() As Integer)
+  Dim i As Integer, j As Integer, t As Integer
+  For i = 0 To UBound(arr)
+    For j = 1 To UBound(arr) - i
+      If arr(j-1) > arr(j) Then
+        t = arr(j-1): arr(j-1) = arr(j): arr(j) = t
+      End If
+    Next
+  Next
+End Sub
+```
+- Visual Basic 语言实现，Sub 过程。
 
-结合两者，我们可以确定，其并集包含 \\(S\\) 但不含 \\((0,0,0)\\) 的平面个数的最小值就是 **\\(3n\\)**。
+// 30. SQL (pseudo)
+```sql
+-- Bubble sort is not practical in SQL, but for demonstration:
+WITH RECURSIVE bubble_sort(arr, n) AS (
+  SELECT arr, 0 FROM input
+  UNION ALL
+  SELECT sort_pass(arr, n), n+1 FROM bubble_sort WHERE n < array_length(arr, 1)
+) SELECT arr FROM bubble_sort ORDER BY n DESC LIMIT 1;
+```
+- SQL 伪代码，仅演示递归思想。
 
-因此，\\(ab\\) 的最大值为 \\(\boxed{\frac{2\sqrt{3}}{3}}\\)。
+// 31. Assembly (x86, pseudo)
+```asm
+; bubble_sort_asm:
+;   mov ecx, n
+; outer:
+;   mov ebx, 1
+; inner:
+;     cmp arr[ebx-1], arr[ebx]
+;     jle skip
+;     xchg arr[ebx-1], arr[ebx]
+;   skip:
+;     inc ebx
+;     cmp ebx, n-ecx
+;     jl inner
+;   loop outer
+```
+- x86 汇编伪代码，演示循环与交换。
 
-要解决这个问题，我们需要确定直线 \( y = 2x + 5 \) 是曲线 \( y = e^x + x + a \) 的切线时，参数 \( a \) 的值。切线的定义是直线与曲线在某一点处相交，并且在该点的斜率相等。因此，我们需要找到满足以下两个条件的 \( x \) 和 \( a \)：
-
-1. 直线和曲线的 \( y \) 值在切点处相等（相交条件）。
-2. 直线和曲线的导数在切点处相等（斜率条件）。
-
-### 解答
-
-#### (1) 求椭圆 \(C\) 的方程
-已知椭圆标准方程 \(\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1\)（\(a > b > 0\)），离心率 \(e = \frac{2\sqrt{2}}{3}\)，下顶点 \(A(0, -b)\)，右顶点 \(B(a, 0)\)，且 \(|AB| = \sqrt{10}\).
-
-- 离心率公式：\(e = \sqrt{1 - \frac{b^2}{a^2}}\)，代入得：
-  \[
-  \sqrt{1 - \frac{b^2}{a^2}} = \frac{2\sqrt{2}}{3}
-  \]
-  平方两边：
-  \[
-  1 - \frac{b^2}{a^2} = \frac{8}{9} \implies \frac{b^2}{a^2} = 1 - \frac{8}{9} = \frac{1}{9} \implies b^2 = \frac{a^2}{9}
-  \]
-
-- 距离 \(|AB|\)：\(A(0, -b)\)，\(B(a, 0)\)，所以：
-  \[
-  |AB| = \sqrt{(a - 0)^2 + (0 - (-b))^2} = \sqrt{a^2 + b^2} = \sqrt{10}
-  \]
-  平方两边：
-  \[
-  a^2 + b^2 = 10
-  \]
-
-- 代入 \(b^2 = \frac{a^2}{9}\)：
-  \[
-  a^2 + \frac{a^2}{9} = 10 \implies \frac{10a^2}{9} = 10 \implies a^2 = 9
-  \]
-  则：
-  \[
-  b^2 = \frac{9}{9} = 1
-  \]
-
-椭圆方程为：
-\[
-\boxed{\dfrac{x^{2}}{9} + y^{2} = 1}
-\]
-
-#### (2) 点 \(P(m, n)\) 不在 \(y\) 轴上，点 \(R\) 在射线 \(AP\) 上，且 \(|AP| \cdot |AR| = 3\)
-##### (i) 求点 \(R\) 的坐标（用 \(m, n\) 表示）
-- 点 \(A\) 为下顶点，由椭圆方程得 \(A(0, -1)\)。
-- 点 \(P(m, n)\)（\(m \neq 0\)），射线 \(AP\) 的方向向量为 \((m, n + 1)\)。
-- 参数方程：点 \(R\) 可表示为 \(R = (0, -1) + t(m, n + 1) = (tm, -1 + t(n + 1))\)，其中 \(t \geq 0\)。
-- 距离 \(|AP|\)：
-  \[
-  |AP| = \sqrt{m^2 + (n + 1)^2}
-  \]
-- 距离 \(|AR|\)：
-  \[
-  |AR| = \sqrt{(tm)^2 + [t(n + 1)]^2} = t \sqrt{m^2 + (n + 1)^2} = t |AP|
-  \]
-- 给定 \(|AP| \cdot |AR| = 3\)：
-  \[
-  |AP| \cdot (t |AP|) = 3 \implies t (|AP|)^2 = 3 \implies t [m^2 + (n + 1)^2] = 3
-  \]
-  所以：
-  \[
-  t = \frac{3}{m^2 + (n + 1)^2}
-  \]
-- 代入 \(R\) 的坐标：
-  \[
-  R_x = t m = \frac{3m}{m^2 + (n + 1)^2}, \quad R_y = -1 + t(n + 1) = -1 + \frac{3(n + 1)}{m^2 + (n + 1)^2}
-  \]
-
-点 \(R\) 的坐标为：
-\[
-\boxed{R\left( \dfrac{3m}{m^{2} + (n + 1)^{2}},\ -1 + \dfrac{3(n + 1)}{m^{2} + (n + 1)^{2}} \right)}
-\]
-
-##### (ii) 设 \(O\) 为坐标原点，\(Q\) 是椭圆 \(C\) 上的动点，直线 \(OR\) 的斜率是直线 \(OP\) 的斜率的 3 倍，求 \(|PQ|\) 的最大值
-- 直线 \(OP\) 的斜率：\(k_{OP} = \frac{n}{m}\)（\(m \neq 0\)）。
-- 点 \(O(0,0)\)，点 \(R\left( R_x, R_y \right)\)，直线 \(OR\) 的斜率：\(k_{OR} = \frac{R_y}{R_x}\)。
-- 给定 \(k_{OR} = 3 k_{OP}\)：
-  \[
-  \frac{R_y}{R_x} = 3 \frac{n}{m}
-  \]
-- 代入 \(R\) 的坐标（由 (i)）：
-  \[
-  R_x = \frac{3m}{d}, \quad R_y = -1 + \frac{3(n + 1)}{d}, \quad \text{其中} \quad d = m^2 + (n + 1)^2
-  \]
-- 斜率比：
-  \[
-  \frac{R_y}{R_x} = \frac{ -1 + \frac{3(n + 1)}{d} }{ \frac{3m}{d} } = \frac{ -d + 3(n + 1) }{3m}
-  \]
-  等于 \(3 \frac{n}{m}\)：
-  \[
-  \frac{ -d + 3(n + 1) }{3m} = 3 \frac{n}{m}
-  \]
-  两边乘 \(m\)（\(m \neq 0\)）：
-  \[
-  \frac{ -d + 3n + 3 }{3} = 3n \implies -d + 3n + 3 = 9n \implies -d = 6n - 3 \implies d = 3 - 6n
-  \]
-- 但 \(d = m^2 + (n + 1)^2 \geq 0\)，所以 \(3 - 6n \geq 0 \implies n \leq \frac{1}{2}\)。
-- 代入 \(d\)：
-  \[
-  m^2 + (n + 1)^2 = 3 - 6n
-  \]
-  展开：
-  \[
-  m^2 + n^2 + 2n + 1 = 3 - 6n \implies m^2 + n^2 + 8n - 2 = 0
-  \]
-  完成平方：
-  \[
-  m^2 + (n^2 + 8n + 16) - 16 - 2 = 0 \implies m^2 + (n + 4)^2 = 18
-  \]
-  点 \(P(m, n)\) 的轨迹是圆 \(x^2 + (y + 4)^2 = 18\)，且 \(n \leq \frac{1}{2}\)（自动满足，因为圆上 \(y \leq 0.24 < 0.5\)），但 \(P\) 不在 \(y\) 轴上，故 \(m \neq 0\).
-
-- 求 \(|PQ|\) 的最大值，其中 \(Q\) 在椭圆 \(\frac{x^2}{9} + y^2 = 1\) 上。
-  - 对于固定 \(P\)，椭圆上最远点 \(Q\) 在射线 \(OP\) 的反向延长线上（由椭圆凸性和对称性）。
-  - 参数化：设 \(Q = k \mathbf{u}\)，其中 \(\mathbf{u}\) 是 \(OP\) 方向的单位向量，但计算得 \(|PQ| = \sqrt{m^2 + n^2} \left( 1 + \frac{1}{\sqrt{\frac{m^2}{9} + n^2}} \right)\)。
-  - 由轨迹 \(m^2 + (n + 4)^2 = 18\) 和 \(r^2 = m^2 + n^2 = 2 - 8n\)：
-    \[
-    |PQ| = \sqrt{2 - 8n} + \sqrt{ \frac{2 - 8n}{\frac{m^2}{9} + n^2} }
-    \]
-  - 代入 \(d^2 = \frac{m^2}{9} + n^2 = \frac{8n^2 - 8n + 2}{9}\)，并简化：
-    \[
-    |PQ| = \sqrt{2} \sqrt{1 - 4n} \left( \sqrt{2} + \frac{3}{1 - 2n} \right)
-    \]
-  - 令 \(u = 1 - 2n\)（\(u > 0\)），则：
-    \[
-    |PQ| = \sqrt{2u - 1} \left( \sqrt{2} + \frac{3}{u} \right)
-    \]
-  - 函数 \(g(u) = \sqrt{2u - 1} \left( \sqrt{2} + \frac{3}{u} \right)\) 在 \(u \in (0.52, 17.48)\) 上递增（导数分析略），最大值在 \(u \to 17.485\)（即 \(n \to -4 - 3\sqrt{2}\)，\(m \to 0\)）时趋近：
-    \[
-    |PQ| = 5 + 3\sqrt{2}
-    \]
-  - 当 \(m \neq 0\) 时，\(|PQ| < 5 + 3\sqrt{2}\)，但可无限接近。验证其他点（如 \(P\) 在 \(x\) 轴）得较小值，故上确界为 \(5 + 3\sqrt{2}\).
-
-\(|PQ|\) 的最大值为：
-\[
-\boxed{5+3\sqrt{2}}
-\]
+// 32. MATLAB
+```matlab
+function arr = bubbleSortMatlab(arr)
+  for i = 1:length(arr)
+    for j = 2:(length(arr)-i+1)
+      if arr(j-1) > arr(j)
+        tmp = arr(j-1); arr(j-1) = arr(j); arr(j) = tmp;
+      end
+    end
+  end
+end
+```
+- MATLAB 语言实现，函数返回排序后数组。
 """###
