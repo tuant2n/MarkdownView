@@ -230,9 +230,8 @@ private extension CodeHighlighter {
     }
 
     func insertCache(_ cache: RenderCache) {
-        // find a place to insert this cache
-        var currentPrfixCaches = renderCache[cache.prefixHash] ?? [] // prefix includes language
-        let replaceIndex = currentPrfixCaches.firstIndex { oldCache in
+        var currentPrefixCaches = renderCache[cache.prefixHash] ?? [] // prefix includes language
+        let replaceIndex = currentPrefixCaches.firstIndex { oldCache in
             let commonPrefixLen = self.commonPrefixLength(
                 lhs: oldCache.content,
                 rhs: cache.content
@@ -243,12 +242,11 @@ private extension CodeHighlighter {
             return false
         }
         if let replaceIndex {
-            // update the cache
-            currentPrfixCaches[replaceIndex] = cache
-        } else {
-            currentPrfixCaches.append(cache)
+            // so we keep seq sorted
+            currentPrefixCaches.remove(at: replaceIndex)
         }
-        renderCache[cache.prefixHash] = currentPrfixCaches
+        currentPrefixCaches.append(cache)
+        renderCache[cache.prefixHash] = currentPrefixCaches
     }
 
     func compactRenderCacheIfNeededWithoutLock() {
@@ -267,6 +265,7 @@ private extension CodeHighlighter {
             var oldestKey: HashValue?
             var oldestSequence = UInt64.max
 
+            // it is ordered values to have oldest first
             for (key, caches) in renderCache {
                 if let cache = caches.first, cache.sequence < oldestSequence {
                     oldestSequence = cache.sequence
