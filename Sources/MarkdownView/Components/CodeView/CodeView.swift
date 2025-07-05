@@ -79,10 +79,17 @@ final class CodeView: UIView {
         let labelSize = languageLabel.intrinsicContentSize
         let barHeight = labelSize.height + CodeViewConfiguration.barPadding * 2
         let textSize = textView.intrinsicContentSize
+        let supposedHeight = Self.intrinsicHeight(for: content, theme: theme)
 
         return CGSize(
-            width: textSize.width + CodeViewConfiguration.codePadding * 2,
-            height: barHeight + textSize.height + CodeViewConfiguration.codePadding * 2
+            width: max(
+                labelSize.width + CodeViewConfiguration.barPadding * 2,
+                textSize.width + CodeViewConfiguration.codePadding * 2
+            ),
+            height: max(
+                barHeight + textSize.height + CodeViewConfiguration.codePadding * 2,
+                supposedHeight
+            )
         )
     }
 
