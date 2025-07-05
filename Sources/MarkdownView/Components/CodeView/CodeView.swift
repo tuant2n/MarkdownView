@@ -50,6 +50,7 @@ final class CodeView: UIView {
     }
 
     private let callerIdentifier = UUID()
+    private var currentTaskIdentifier: UUID?
 
     lazy var barView: UIView = .init()
     lazy var scrollView: UIScrollView = .init()
@@ -122,31 +123,41 @@ final class CodeView: UIView {
     }
 
     private func performHighlight(with code: String) {
-        CodeHighlighter.shared.submitHighlightRequest(
-            content: code,
-            language: language,
+        // cancel the previous task if it exists
+        if let currentTask = currentTaskIdentifier {
+            CodeHighlighter.current.cancelHighlight(taskIdentifier: currentTask)
+        }
+        
+        let taskIdentifier = UUID()
+        currentTaskIdentifier = taskIdentifier
+        
+        let request = CodeHighlighter.HighlightRequest(
+            taskIdentifier: taskIdentifier,
             callerIdentifier: callerIdentifier,
+            language: language,
+            content: code,
             theme: theme
-        ) { [weak self] result in
+        )
+        
+        CodeHighlighter.current.beginHighlight(request: request) { [weak self] result in
             guard let self else { return }
-
+            
             DispatchQueue.main.async {
                 self.handleHighlightResult(result)
             }
         }
     }
 
-    private func handleHighlightResult(_ result: HighlightResult) {
+    private func handleHighlightResult(_ result: CodeHighlighter.HighlightResult) {
         switch result {
-        case let .success(attribute):
-            calculatedAttributes = attribute
-
-        case .cancelled:
-            break
-
-        case let .error(errorMessage):
-            print("[-] code highlighting error: \(errorMessage)")
-            calculatedAttributes.removeAll()
+        case let .cache(task, map):
+            guard task == currentTaskIdentifier else { return }
+            calculatedAttributes = map
+            
+        case let .highlighted(task, map):
+            guard task == currentTaskIdentifier else { return }
+            calculatedAttributes = map
+            currentTaskIdentifier = nil
         }
     }
 

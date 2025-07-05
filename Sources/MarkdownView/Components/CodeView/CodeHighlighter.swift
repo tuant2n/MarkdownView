@@ -196,6 +196,7 @@ private extension CodeHighlighter {
             highlightRequestQueue.removeAll {
                 let isTarget = $0.taskIdentifier == request.taskIdentifier
                 assert(!(foundTarget && isTarget)) // should not have multiple founds
+                if isTarget { foundTarget = true }
                 return isTarget
             }
             queueLock.unlock()
