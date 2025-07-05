@@ -7,46 +7,36 @@ import Litext
 import UIKit
 
 final class CodeView: UIView {
+    // MARK: - CONTENT
+
+    // only update on content will trigger update to attribute text
+    // get theme and language ready in first place
+    // please strictly follow the order
+
     var theme: MarkdownTheme = .default {
-        didSet {
-            languageLabel.font = theme.fonts.code
-            performHighlight(with: content)
-        }
+        didSet { languageLabel.font = theme.fonts.code }
     }
 
     var language: String = "" {
+        didSet { languageLabel.text = language }
+    }
+
+    var content: String = "" {
         didSet {
-            languageLabel.text = language
+            if content.isEmpty {
+                textView.attributedText = .init()
+            } else {
+                performHighlight(with: content)
+            }
         }
     }
+
+    // MARK: CONTENT -
 
     var previewAction: ((String?, NSAttributedString) -> Void)? {
         didSet {
             setNeedsLayout()
         }
-    }
-
-    private var _content: String = ""
-    var content: String {
-        set {
-            guard _content != newValue else { return }
-            let oldValue = _content
-            _content = newValue
-
-            if newValue.isEmpty || !shouldPreserveHighlight(oldValue: oldValue, newValue: newValue) {
-                calculatedAttributes.removeAll()
-            } else {
-                updateHighlightedContent()
-            }
-            if !newValue.isEmpty {
-                performHighlight(with: newValue)
-            }
-        }
-        get { _content }
-    }
-
-    var calculatedAttributes: [NSRange: UIColor] = [:] {
-        didSet { updateHighlightedContent() }
     }
 
     private let callerIdentifier = UUID()
@@ -106,22 +96,6 @@ final class CodeView: UIView {
         previewAction?(language, textView.attributedText)
     }
 
-    private func shouldPreserveHighlight(oldValue: String?, newValue: String?) -> Bool {
-        guard var oldValue, !oldValue.isEmpty,
-              let newValue, !newValue.isEmpty
-        else { return false }
-
-        // the view might have ``` in the end which means
-        // these characters are revoked once codeblock is completed
-        // so ignore them on comparison
-        while oldValue.hasSuffix("`") {
-            oldValue.removeLast()
-        }
-        oldValue = oldValue.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return newValue.hasPrefix(oldValue)
-    }
-
     private func performHighlight(with code: String) {
         // cancel the previous task if it exists
         if let currentTask = currentTaskIdentifier {
@@ -142,8 +116,12 @@ final class CodeView: UIView {
         CodeHighlighter.current.beginHighlight(request: request) { [weak self] result in
             guard let self else { return }
 
-            DispatchQueue.main.async {
-                self.handleHighlightResult(result)
+            if Thread.isMainThread {
+                handleHighlightResult(result)
+            } else {
+                DispatchQueue.main.asyncAndWait {
+                    self.handleHighlightResult(result)
+                }
             }
         }
     }
@@ -152,16 +130,16 @@ final class CodeView: UIView {
         switch result {
         case let .cache(task, map):
             guard task == currentTaskIdentifier else { return }
-            calculatedAttributes = map
+            updateHighlightedContent(calculatedAttributes: map)
 
         case let .highlighted(task, map):
             guard task == currentTaskIdentifier else { return }
-            calculatedAttributes = map
+            updateHighlightedContent(calculatedAttributes: map)
             currentTaskIdentifier = nil
         }
     }
 
-    private func updateHighlightedContent() {
+    private func updateHighlightedContent(calculatedAttributes: CodeHighlighter.HighlightMap) {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = CodeViewConfiguration.codeLineSpacing
 

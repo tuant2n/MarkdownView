@@ -8,231 +8,961 @@
 import Foundation
 
 let testDocument = ###"""
-好的，这是一个有趣的组合几何问题。我们来分步解决它。
+冒泡排序是一种简单的排序算法，它重复地遍历要排序的列表，比较每对相邻的元素，如果它们的顺序不正确就交换它们。这个过程会重复进行，直到不再需要交换，这意味着列表已经排序完成。
 
-问题可以概括为：
-给定点集 \\( S = \{(x, y, z) | x, y, z \in \{0, 1, \dots, n\}, x+y+z > 0\} \\)，求覆盖 \\(S\\) 中所有点，但不包含原点 \\((0,0,0)\\) 的最少平面数量。
-
----
-
-### 最终答案
-
-这个问题的答案是 \\(3n\\)。
+以下是用 32 种语言实现的冒泡排序：
 
 ---
 
-### 详细解析
+## 1. C 语言 (C Language)
 
-我们可以从两个方面来证明这个结论：
-1.  **上界 (Upper Bound):** 构造一个包含 \\(3n\\) 个平面的集合，证明它满足条件。
-2.  **下界 (Lower Bound):** 证明任何满足条件的平面集合都必须至少包含 \\(3n\\) 个平面。
+```c
+#include <stdio.h>
 
-### 1. 上界证明（构造法）
+void bubbleSort(int arr[], int n) {
+    int i, j, temp;
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
 
-我们可以构造一个由 \\(3n\\) 个平面组成的集合，这个集合能够覆盖 \\(S\\) 中所有的点，但又不包含原点 \\((0,0,0)\\)。
+void printArray(int arr[], int size) {
+    int i;
+    for (i = 0; i < size; i++)
+        printf("%d ", arr[i]);
+    printf("\n");
+}
 
-考虑以下三组平面：
-*   **第一组:** \\(x = i\\)，其中 \\(i \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
-*   **第二组:** \\(y = j\\)，其中 \\(j \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
-*   **第三组:** \\(z = k\\)，其中 \\(k \in \{1, 2, \dots, n\}\\)。这组有 \\(n\\) 个平面。
-
-总共的平面数量是 \\(n + n + n = 3n\\)。
-
-现在我们来验证这个平面集合是否满足题目的两个条件：
-
-*   **条件一：并集包含 S**
-    对于任何一个点 \\(P(x_0, y_0, z_0) \in S\\)，根据 \\(S\\) 的定义，我们有 \\(x_0, y_0, z_0 \in \{0, 1, \dots, n\}\\) 并且 \\(x_0+y_0+z_0 > 0\\)。
-    \\(x_0+y_0+z_0 > 0\\) 意味着 \\(x_0, y_0, z_0\\) 中至少有一个坐标不为零。
-    *   如果 \\(x_0 \neq 0\\)，那么 \\(x_0 \in \{1, 2, \dots, n\}\\)。因此，点 \\(P\\) 位于平面 \\(x = x_0\\) 上，而这个平面在我们构造的集合中。
-    *   同理，如果 \\(y_0 \neq 0\\)，点 \\(P\\) 位于平面 \\(y = y_0\\) 上。
-    *   如果 \\(z_0 \neq 0\\)，点 \\(P\\) 位于平面 \\(z = z_0\\) 上。
-    因为至少有一个坐标不为零，所以点 \\(P\\) 必然被我们构造的 \\(3n\\) 个平面中的至少一个所覆盖。
-
-*   **条件二：不包含 (0,0,0)**
-    我们构造的平面方程为 \\(x=i, y=j, z=k\\)，其中 \\(i,j,k\\) 都属于 \\(\{1, 2, \dots, n\}\\)。
-    原点 \\((0,0,0)\\) 的坐标显然不满足任何一个方程（例如，\\(0 \neq i\\) 因为 \\(i \ge 1\\)）。
-    因此，这个平面集合不包含原点。
-
-**结论：** 存在一个包含 \\(3n\\) 个平面的集合满足条件，所以最小的平面数量不会超过 \\(3n\\)。
-
-### 2. 下界证明（多项式方法）
-
-为了证明至少需要 \\(3n\\) 个平面，我们可以使用一种强大的数学工具——组合零点定理（Combinatorial Nullstellensatz）。
-
-假设我们找到了 \\(k\\) 个满足条件的平面。设这些平面的方程为：
-\\[ L_j(x, y, z) = a_j x + b_j y + c_j z - d_j = 0 \quad \text{for } j = 1, \dots, k \\]
-根据题意，原点 \\((0,0,0)\\) 不在任何一个平面上，这意味着 \\(L_j(0,0,0) = -d_j \neq 0\\)，所以 \\(d_j \neq 0\\) 对所有 \\(j\\) 成立。
-
-现在，我们构造一个多项式 \\(P(x,y,z)\\) 如下：
-\\[ P(x, y, z) = \prod_{j=1}^{k} L_j(x, y, z) \\]
-这个多项式的次数 \\(\deg(P) = k\\)。
-
-这个多项式 \\(P\\) 有两个关键性质：
-1.  对于任何点 \\(v \in S\\)，\\(v\\) 至少在一个平面上，所以至少有一个 \\(L_j(v) = 0\\)。因此，\\(P(v) = 0\\)。
-2.  对于原点 \\((0,0,0)\\)，它不在任何平面上，所以 \\(L_j(0,0,0) \neq 0\\) 对所有 \\(j\\) 都成立。因此，\\(P(0,0,0) = \prod_{j=1}^{k} (-d_j) \neq 0\\)。
-
-接下来，我们构造另一个具有相同性质的多项式：
-\\[ Q(x, y, z) = C \cdot \left( \prod_{i=1}^{n} (x-i) \right) \left( \prod_{j=1}^{n} (y-j) \right) \left( \prod_{k=1}^{n} (z-k) \right) \\]
-其中 \\(C\\) 是一个非零常数。这个多项式的次数是 \\(\deg(Q) = n+n+n = 3n\\)。
-
-我们来检验多项式 \\(Q\\) 的性质：
-1.  对于任何点 \\(v=(x_0, y_0, z_0) \in S\\)，至少有一个坐标不为零。假设 \\(x_0 \neq 0\\)，则 \\(x_0 \in \{1, 2, \dots, n\}\\)。此时，第一项 \\(\prod_{i=1}^{n} (x_0-i)\\) 中必然有一个因子是 \\((x_0-x_0)=0\\)，所以 \\(Q(v)=0\\)。
-2.  对于原点 \\((0,0,0)\\)，\\(Q(0,0,0) = C \cdot (\prod_{i=1}^{n} (-i))^3 = C \cdot ((-1)^n n!)^3\\)。只要我们选择 \\(C \neq 0\\)，那么 \\(Q(0,0,0) \neq 0\\)。
-
-现在我们有两个多项式 \\(P\\) 和 \\(Q\\)，它们都在点集 \\(S\\) 上为零，但在原点不为零。
-根据组合零点定理的一个推论（由 Noga Alon 提出），任何具有这些性质的多项式，其次数必须至少为 \\(3n\\)。
-
-这个定理的精髓在于，一个在网格 \\(\{0,1,\dots,n\}^3\\) 中除一个点外处处为零的多项式，如果要构造出来，其最低次数是固定的。我们构造的 \\(Q(x,y,z)\\) 实际上是这种多项式中一个最简洁的形式，它的最高次项是 \\(C \cdot x^n y^n z^n\\)。任何其他具有相同零点模式的多项式（如我们的 \\(P(x,y,z)\\)），在经过某种“化简”后，也必须含有这个 \\(x^n y^n z^n\\) 项，这也就限制了它的原始次数。
-
-因此，我们必须有 \\(\deg(P) \ge \deg(Q)\\)，即 \\(k \ge 3n\\)。
-
-**结论：** 任何满足条件的平面集合必须至少包含 \\(3n\\) 个平面。
+int main() {
+    int arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    printf("Original array: \n");
+    printArray(arr, n);
+    bubbleSort(arr, n);
+    printf("Sorted array: \n");
+    printArray(arr, n);
+    return 0;
+}
+```
 
 ---
 
-### 总结
+## 2. C++ 语言 (C++ Language)
 
-*   我们证明了 \\(3n\\) 个平面是**足够**的（上界）。
-*   我们证明了 \\(3n\\) 个平面是**必要**的（下界）。
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
-结合两者，我们可以确定，其并集包含 \\(S\\) 但不含 \\((0,0,0)\\) 的平面个数的最小值就是 **\\(3n\\)**。
+void bubbleSort(std::vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                std::swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
 
-因此，\\(ab\\) 的最大值为 \\(\boxed{\frac{2\sqrt{3}}{3}}\\)。
+void printArray(const std::vector<int>& arr) {
+    for (int x : arr) {
+        std::cout << x << " ";
+    }
+    std::cout << std::endl;
+}
 
-要解决这个问题，我们需要确定直线 \( y = 2x + 5 \) 是曲线 \( y = e^x + x + a \) 的切线时，参数 \( a \) 的值。切线的定义是直线与曲线在某一点处相交，并且在该点的斜率相等。因此，我们需要找到满足以下两个条件的 \( x \) 和 \( a \)：
+int main() {
+    std::vector<int> arr = {64, 34, 25, 12, 22, 11, 90};
+    std::cout << "Original array: \n";
+    printArray(arr);
+    bubbleSort(arr);
+    std::cout << "Sorted array: \n";
+    printArray(arr);
+    return 0;
+}
+```
 
-1. 直线和曲线的 \( y \) 值在切点处相等（相交条件）。
-2. 直线和曲线的导数在切点处相等（斜率条件）。
+---
 
-### 解答
+## 3. Java 语言 (Java Language)
 
-#### (1) 求椭圆 \(C\) 的方程
-已知椭圆标准方程 \(\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1\)（\(a > b > 0\)），离心率 \(e = \frac{2\sqrt{2}}{3}\)，下顶点 \(A(0, -b)\)，右顶点 \(B(a, 0)\)，且 \(|AB| = \sqrt{10}\).
+```java
+import java.util.Arrays;
 
-- 离心率公式：\(e = \sqrt{1 - \frac{b^2}{a^2}}\)，代入得：
-  \[
-  \sqrt{1 - \frac{b^2}{a^2}} = \frac{2\sqrt{2}}{3}
-  \]
-  平方两边：
-  \[
-  1 - \frac{b^2}{a^2} = \frac{8}{9} \implies \frac{b^2}{a^2} = 1 - \frac{8}{9} = \frac{1}{9} \implies b^2 = \frac{a^2}{9}
-  \]
+public class BubbleSort {
+    public static void bubbleSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    // swap arr[j] and arr[j+1]
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+    }
 
-- 距离 \(|AB|\)：\(A(0, -b)\)，\(B(a, 0)\)，所以：
-  \[
-  |AB| = \sqrt{(a - 0)^2 + (0 - (-b))^2} = \sqrt{a^2 + b^2} = \sqrt{10}
-  \]
-  平方两边：
-  \[
-  a^2 + b^2 = 10
-  \]
+    public static void main(String[] args) {
+        int[] arr = {64, 34, 25, 12, 22, 11, 90};
+        System.out.println("Original array: ");
+        System.out.println(Arrays.toString(arr));
+        bubbleSort(arr);
+        System.out.println("Sorted array: ");
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
 
-- 代入 \(b^2 = \frac{a^2}{9}\)：
-  \[
-  a^2 + \frac{a^2}{9} = 10 \implies \frac{10a^2}{9} = 10 \implies a^2 = 9
-  \]
-  则：
-  \[
-  b^2 = \frac{9}{9} = 1
-  \]
+---
 
-椭圆方程为：
-\[
-\boxed{\dfrac{x^{2}}{9} + y^{2} = 1}
-\]
+## 4. Python 语言 (Python Language)
 
-#### (2) 点 \(P(m, n)\) 不在 \(y\) 轴上，点 \(R\) 在射线 \(AP\) 上，且 \(|AP| \cdot |AR| = 3\)
-##### (i) 求点 \(R\) 的坐标（用 \(m, n\) 表示）
-- 点 \(A\) 为下顶点，由椭圆方程得 \(A(0, -1)\)。
-- 点 \(P(m, n)\)（\(m \neq 0\)），射线 \(AP\) 的方向向量为 \((m, n + 1)\)。
-- 参数方程：点 \(R\) 可表示为 \(R = (0, -1) + t(m, n + 1) = (tm, -1 + t(n + 1))\)，其中 \(t \geq 0\)。
-- 距离 \(|AP|\)：
-  \[
-  |AP| = \sqrt{m^2 + (n + 1)^2}
-  \]
-- 距离 \(|AR|\)：
-  \[
-  |AR| = \sqrt{(tm)^2 + [t(n + 1)]^2} = t \sqrt{m^2 + (n + 1)^2} = t |AP|
-  \]
-- 给定 \(|AP| \cdot |AR| = 3\)：
-  \[
-  |AP| \cdot (t |AP|) = 3 \implies t (|AP|)^2 = 3 \implies t [m^2 + (n + 1)^2] = 3
-  \]
-  所以：
-  \[
-  t = \frac{3}{m^2 + (n + 1)^2}
-  \]
-- 代入 \(R\) 的坐标：
-  \[
-  R_x = t m = \frac{3m}{m^2 + (n + 1)^2}, \quad R_y = -1 + t(n + 1) = -1 + \frac{3(n + 1)}{m^2 + (n + 1)^2}
-  \]
+```python
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
-点 \(R\) 的坐标为：
-\[
-\boxed{R\left( \dfrac{3m}{m^{2} + (n + 1)^{2}},\ -1 + \dfrac{3(n + 1)}{m^{2} + (n + 1)^{2}} \right)}
-\]
+if __name__ == "__main__":
+    arr = [64, 34, 25, 12, 22, 11, 90]
+    print("Original array:")
+    print(arr)
+    bubble_sort(arr)
+    print("Sorted array:")
+    print(arr)
+```
 
-##### (ii) 设 \(O\) 为坐标原点，\(Q\) 是椭圆 \(C\) 上的动点，直线 \(OR\) 的斜率是直线 \(OP\) 的斜率的 3 倍，求 \(|PQ|\) 的最大值
-- 直线 \(OP\) 的斜率：\(k_{OP} = \frac{n}{m}\)（\(m \neq 0\)）。
-- 点 \(O(0,0)\)，点 \(R\left( R_x, R_y \right)\)，直线 \(OR\) 的斜率：\(k_{OR} = \frac{R_y}{R_x}\)。
-- 给定 \(k_{OR} = 3 k_{OP}\)：
-  \[
-  \frac{R_y}{R_x} = 3 \frac{n}{m}
-  \]
-- 代入 \(R\) 的坐标（由 (i)）：
-  \[
-  R_x = \frac{3m}{d}, \quad R_y = -1 + \frac{3(n + 1)}{d}, \quad \text{其中} \quad d = m^2 + (n + 1)^2
-  \]
-- 斜率比：
-  \[
-  \frac{R_y}{R_x} = \frac{ -1 + \frac{3(n + 1)}{d} }{ \frac{3m}{d} } = \frac{ -d + 3(n + 1) }{3m}
-  \]
-  等于 \(3 \frac{n}{m}\)：
-  \[
-  \frac{ -d + 3(n + 1) }{3m} = 3 \frac{n}{m}
-  \]
-  两边乘 \(m\)（\(m \neq 0\)）：
-  \[
-  \frac{ -d + 3n + 3 }{3} = 3n \implies -d + 3n + 3 = 9n \implies -d = 6n - 3 \implies d = 3 - 6n
-  \]
-- 但 \(d = m^2 + (n + 1)^2 \geq 0\)，所以 \(3 - 6n \geq 0 \implies n \leq \frac{1}{2}\)。
-- 代入 \(d\)：
-  \[
-  m^2 + (n + 1)^2 = 3 - 6n
-  \]
-  展开：
-  \[
-  m^2 + n^2 + 2n + 1 = 3 - 6n \implies m^2 + n^2 + 8n - 2 = 0
-  \]
-  完成平方：
-  \[
-  m^2 + (n^2 + 8n + 16) - 16 - 2 = 0 \implies m^2 + (n + 4)^2 = 18
-  \]
-  点 \(P(m, n)\) 的轨迹是圆 \(x^2 + (y + 4)^2 = 18\)，且 \(n \leq \frac{1}{2}\)（自动满足，因为圆上 \(y \leq 0.24 < 0.5\)），但 \(P\) 不在 \(y\) 轴上，故 \(m \neq 0\).
+---
 
-- 求 \(|PQ|\) 的最大值，其中 \(Q\) 在椭圆 \(\frac{x^2}{9} + y^2 = 1\) 上。
-  - 对于固定 \(P\)，椭圆上最远点 \(Q\) 在射线 \(OP\) 的反向延长线上（由椭圆凸性和对称性）。
-  - 参数化：设 \(Q = k \mathbf{u}\)，其中 \(\mathbf{u}\) 是 \(OP\) 方向的单位向量，但计算得 \(|PQ| = \sqrt{m^2 + n^2} \left( 1 + \frac{1}{\sqrt{\frac{m^2}{9} + n^2}} \right)\)。
-  - 由轨迹 \(m^2 + (n + 4)^2 = 18\) 和 \(r^2 = m^2 + n^2 = 2 - 8n\)：
-    \[
-    |PQ| = \sqrt{2 - 8n} + \sqrt{ \frac{2 - 8n}{\frac{m^2}{9} + n^2} }
-    \]
-  - 代入 \(d^2 = \frac{m^2}{9} + n^2 = \frac{8n^2 - 8n + 2}{9}\)，并简化：
-    \[
-    |PQ| = \sqrt{2} \sqrt{1 - 4n} \left( \sqrt{2} + \frac{3}{1 - 2n} \right)
-    \]
-  - 令 \(u = 1 - 2n\)（\(u > 0\)），则：
-    \[
-    |PQ| = \sqrt{2u - 1} \left( \sqrt{2} + \frac{3}{u} \right)
-    \]
-  - 函数 \(g(u) = \sqrt{2u - 1} \left( \sqrt{2} + \frac{3}{u} \right)\) 在 \(u \in (0.52, 17.48)\) 上递增（导数分析略），最大值在 \(u \to 17.485\)（即 \(n \to -4 - 3\sqrt{2}\)，\(m \to 0\)）时趋近：
-    \[
-    |PQ| = 5 + 3\sqrt{2}
-    \]
-  - 当 \(m \neq 0\) 时，\(|PQ| < 5 + 3\sqrt{2}\)，但可无限接近。验证其他点（如 \(P\) 在 \(x\) 轴）得较小值，故上确界为 \(5 + 3\sqrt{2}\).
+## 5. JavaScript 语言 (JavaScript Language)
 
-\(|PQ|\) 的最大值为：
-\[
-\boxed{5+3\sqrt{2}}
-\]
+```javascript
+function bubbleSort(arr) {
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap arr[j] and arr[j+1]
+                let temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    return arr;
+}
+
+let arr = [64, 34, 25, 12, 22, 11, 90];
+console.log("Original array:");
+console.log(arr);
+bubbleSort(arr);
+console.log("Sorted array:");
+console.log(arr);
+```
+
+---
+
+## 6. PHP 语言 (PHP Language)
+
+```php
+<?php
+function bubbleSort(&$arr) {
+    $n = count($arr);
+    for ($i = 0; $i < $n - 1; $i++) {
+        for ($j = 0; $j < $n - $i - 1; $j++) {
+            if ($arr[$j] > $arr[$j + 1]) {
+                // Swap $arr[$j] and $arr[$j+1]
+                $temp = $arr[$j];
+                $arr[$j] = $arr[$j + 1];
+                $arr[$j + 1] = $temp;
+            }
+        }
+    }
+}
+
+$arr = [64, 34, 25, 12, 22, 11, 90];
+echo "Original array:\n";
+print_r($arr);
+bubbleSort($arr);
+echo "Sorted array:\n";
+print_r($arr);
+?>
+```
+
+---
+
+## 7. Ruby 语言 (Ruby Language)
+
+```ruby
+def bubble_sort(arr)
+    n = arr.length
+    for i in 0..(n - 2)
+        for j in 0..(n - i - 2)
+            if arr[j] > arr[j + 1]
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+            end
+        end
+    end
+    arr
+end
+
+arr = [64, 34, 25, 12, 22, 11, 90]
+puts "Original array:"
+puts arr.to_s
+bubble_sort(arr)
+puts "Sorted array:"
+puts arr.to_s
+```
+
+---
+
+## 8. Go 语言 (Go Language)
+
+```go
+package main
+
+import "fmt"
+
+func bubbleSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n-1; i++ {
+        for j := 0; j < n-i-1; j++ {
+            if arr[j] > arr[j+1] {
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+            }
+        }
+    }
+}
+
+func main() {
+    arr := []int{64, 34, 25, 12, 22, 11, 90}
+    fmt.Println("Original array:")
+    fmt.Println(arr)
+    bubbleSort(arr)
+    fmt.Println("Sorted array:")
+    fmt.Println(arr)
+}
+```
+
+---
+
+## 9. Swift 语言 (Swift Language)
+
+```swift
+func bubbleSort<T: Comparable>(_ array: inout [T]) {
+    let n = array.count
+    for i in 0..<n - 1 {
+        for j in 0..<n - i - 1 {
+            if array[j] > array[j + 1] {
+                array.swapAt(j, j + 1)
+            }
+        }
+    }
+}
+
+var arr = [64, 34, 25, 12, 22, 11, 90]
+print("Original array:")
+print(arr)
+bubbleSort(&arr)
+print("Sorted array:")
+print(arr)
+```
+
+---
+
+## 10. Kotlin 语言 (Kotlin Language)
+
+```kotlin
+fun bubbleSort(arr: IntArray) {
+    val n = arr.size
+    for (i in 0 until n - 1) {
+        for (j in 0 until n - i - 1) {
+            if (arr[j] > arr[j + 1]) {
+                val temp = arr[j]
+                arr[j] = arr[j + 1]
+                arr[j + 1] = temp
+            }
+        }
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(64, 34, 25, 12, 22, 11, 90)
+    println("Original array:")
+    println(arr.contentToString())
+    bubbleSort(arr)
+    println("Sorted array:")
+    println(arr.contentToString())
+}
+```
+
+---
+
+## 11. Rust 语言 (Rust Language)
+
+```rust
+fn bubble_sort<T: Ord>(arr: &mut [T]) {
+    let n = arr.len();
+    for i in 0..n {
+        for j in 0..n - 1 - i {
+            if arr[j] > arr[j + 1] {
+                arr.swap(j, j + 1);
+            }
+        }
+    }
+}
+
+fn main() {
+    let mut arr = [64, 34, 25, 12, 22, 11, 90];
+    println!("Original array: {:?}", arr);
+    bubble_sort(&mut arr);
+    println!("Sorted array: {:?}", arr);
+}
+```
+
+---
+
+## 12. TypeScript 语言 (TypeScript Language)
+
+```typescript
+function bubbleSort<T>(arr: T[]): T[] {
+    const n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            // Assuming elements are comparable
+            if (arr[j] > arr[j + 1]) {
+                // Swap arr[j] and arr[j+1]
+                let temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    return arr;
+}
+
+let arr = [64, 34, 25, 12, 22, 11, 90];
+console.log("Original array:");
+console.log(arr);
+bubbleSort(arr);
+console.log("Sorted array:");
+console.log(arr);
+```
+
+---
+
+## 13. Scala 语言 (Scala Language)
+
+```scala
+object BubbleSort {
+  def bubbleSort(arr: Array[Int]): Array[Int] = {
+    val n = arr.length
+    for (i <- 0 until n - 1) {
+      for (j <- 0 until n - i - 1) {
+        if (arr(j) > arr(j + 1)) {
+          val temp = arr(j)
+          arr(j) = arr(j + 1)
+          arr(j + 1) = temp
+        }
+      }
+    }
+    arr
+  }
+
+  def main(args: Array[String]): Unit = {
+    val arr = Array(64, 34, 25, 12, 22, 11, 90)
+    println("Original array:")
+    println(arr.mkString(", "))
+    bubbleSort(arr)
+    println("Sorted array:")
+    println(arr.mkString(", "))
+  }
+}
+```
+
+---
+
+## 14. R 语言 (R Language)
+
+```r
+bubble_sort <- function(arr) {
+  n <- length(arr)
+  for (i in 1:(n - 1)) {
+    for (j in 1:(n - i)) {
+      if (arr[j] > arr[j + 1]) {
+        temp <- arr[j]
+        arr[j] <- arr[j + 1]
+        arr[j + 1] <- temp
+      }
+    }
+  }
+  return(arr)
+}
+
+arr <- c(64, 34, 25, 12, 22, 11, 90)
+cat("Original array:\n")
+print(arr)
+sorted_arr <- bubble_sort(arr)
+cat("Sorted array:\n")
+print(sorted_arr)
+```
+
+---
+
+## 15. Perl 语言 (Perl Language)
+
+```perl
+use strict;
+use warnings;
+
+sub bubble_sort {
+    my @arr = @_;
+    my $n = @arr;
+    for my $i (0 .. $n - 2) {
+        for my $j (0 .. $n - $i - 2) {
+            if ($arr[$j] > $arr[$j + 1]) {
+                ($arr[$j], $arr[$j + 1]) = ($arr[$j + 1], $arr[$j]);
+            }
+        }
+    }
+    return @arr;
+}
+
+my @arr = (64, 34, 25, 12, 22, 11, 90);
+print "Original array: @arr\n";
+my @sorted_arr = bubble_sort(@arr);
+print "Sorted array: @sorted_arr\n";
+```
+
+---
+
+## 16. Haskell 语言 (Haskell Language)
+
+```haskell
+bubbleSort :: Ord a => [a] -> [a]
+bubbleSort xs =
+  foldr (\_ acc -> bubblePass acc) xs [1..length xs - 1]
+  where
+    bubblePass [] = []
+    bubblePass [x] = [x]
+    bubblePass (x:y:rest)
+      | x > y     = y : bubblePass (x:rest)
+      | otherwise = x : bubblePass (y:rest)
+
+main :: IO ()
+main = do
+  let arr = [64, 34, 25, 12, 22, 11, 90]
+  putStrLn $ "Original array: " ++ show arr
+  putStrLn $ "Sorted array: " ++ show (bubbleSort arr)
+```
+
+---
+
+## 17. Lua 语言 (Lua Language)
+
+```lua
+function bubbleSort(arr)
+    local n = #arr
+    for i = 1, n - 1 do
+        for j = 1, n - i do
+            if arr[j] > arr[j+1] then
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+            end
+        end
+    end
+    return arr
+end
+
+local arr = {64, 34, 25, 12, 22, 11, 90}
+print("Original array:")
+for _, v in ipairs(arr) do
+    io.write(v .. " ")
+end
+print()
+bubbleSort(arr)
+print("Sorted array:")
+for _, v in ipairs(arr) do
+    io.write(v .. " ")
+end
+print()
+```
+
+---
+
+## 18. MATLAB 语言 (MATLAB Language)
+
+```matlab
+function sorted_arr = bubbleSort(arr)
+    n = length(arr);
+    for i = 1:(n - 1)
+        for j = 1:(n - i)
+            if arr(j) > arr(j + 1)
+                temp = arr(j);
+                arr(j) = arr(j + 1);
+                arr(j + 1) = temp;
+            end
+        end
+    end
+    sorted_arr = arr;
+end
+
+arr = [64, 34, 25, 12, 22, 11, 90];
+fprintf('Original array:\n');
+disp(arr);
+sorted_arr = bubbleSort(arr);
+fprintf('Sorted array:\n');
+disp(sorted_arr);
+```
+
+---
+
+## 19. C# 语言 (C# Language)
+
+```csharp
+using System;
+using System.Linq;
+
+public class BubbleSort
+{
+    public static void Sort(int[] arr)
+    {
+        int n = arr.Length;
+        for (int i = 0; i < n - 1; i++)
+        {
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (arr[j] > arr[j + 1])
+                {
+                    // Swap arr[j] and arr[j+1]
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+    }
+
+    public static void Main(string[] args)
+    {
+        int[] arr = { 64, 34, 25, 12, 22, 11, 90 };
+        Console.WriteLine("Original array:");
+        Console.WriteLine(string.Join(", ", arr));
+        Sort(arr);
+        Console.WriteLine("Sorted array:");
+        Console.WriteLine(string.Join(", ", arr));
+    }
+}
+```
+
+---
+
+## 20. Dart 语言 (Dart Language)
+
+```dart
+void bubbleSort<T extends Comparable>(List<T> arr) {
+  int n = arr.length;
+  for (int i = 0; i < n - 1; i++) {
+    for (int j = 0; j < n - i - 1; j++) {
+      if (arr[j].compareTo(arr[j + 1]) > 0) {
+        // Swap arr[j] and arr[j+1]
+        T temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+      }
+    }
+  }
+}
+
+void main() {
+  List<int> arr = [64, 34, 25, 12, 22, 11, 90];
+  print("Original array:");
+  print(arr);
+  bubbleSort(arr);
+  print("Sorted array:");
+  print(arr);
+}
+```
+
+---
+
+## 21. F# 语言 (F# Language)
+
+```fsharp
+let bubbleSort (arr: int array) =
+    let n = Array.length arr
+    for i = 0 to n - 2 do
+        for j = 0 to n - i - 2 do
+            if arr.[j] > arr.[j + 1] then
+                let temp = arr.[j]
+                arr.[j] <- arr.[j + 1]
+                arr.[j + 1] <- temp
+
+let main =
+    let arr = [|64; 34; 25; 12; 22; 11; 90|]
+    printfn "Original array: %A" arr
+    bubbleSort arr
+    printfn "Sorted array: %A" arr
+```
+
+---
+
+## 22. Erlang 语言 (Erlang Language)
+
+```erlang
+-module(bubble_sort).
+-export([sort/1, main/0]).
+
+sort(List) ->
+    N = length(List),
+    sort(List, N, 0).
+
+sort(List, N, I) when I < N-1 ->
+    {NewList, Swapped} = bubble_pass(List, N, 0, false),
+    case Swapped of
+        true -> sort(NewList, N, I+1);
+        false -> NewList
+    end;
+sort(List, _, _) -> List.
+
+bubble_pass(List, N, J, Swapped) when J < N-1 ->
+    case List of
+        [H1, H2 | T] ->
+            if H1 > H2 ->
+                {NewList, _} = bubble_pass([H2, H1 | T], N, J+1, true),
+                {NewList, true};
+            true ->
+                {NewList, _} = bubble_pass([H1, H2 | T], N, J+1, Swapped),
+                {NewList, Swapped}
+            end;
+        _ -> {List, Swapped}
+    end;
+bubble_pass(List, _, _, Swapped) -> {List, Swapped}.
+
+% This Erlang bubble sort is more complex due to immutability.
+% A more idiomatic Erlang sort would likely use quicksort or mergesort.
+% The implementation above is a direct translation attempt.
+
+main() ->
+    Arr = [64, 34, 25, 12, 22, 11, 90],
+    io:format("Original list: ~p~n", [Arr]),
+    SortedArr = sort(Arr),
+    io:format("Sorted list: ~p~n", [SortedArr]).
+```
+*注意：Erlang 是函数式语言，数据是不可变的。直接实现冒泡排序需要递归和传递新列表，这与命令式语言的实现方式不同，效率也较低。上述代码是一个模拟命令式冒泡排序的尝试，但不是 Erlang 的最佳实践。*
+
+---
+
+## 23. Groovy 语言 (Groovy Language)
+
+```groovy
+def bubbleSort(List<Integer> arr) {
+    def n = arr.size()
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                def temp = arr[j]
+                arr[j] = arr[j + 1]
+                arr[j + 1] = temp
+            }
+        }
+    }
+    return arr
+}
+
+def arr = [64, 34, 25, 12, 22, 11, 90]
+println "Original array: ${arr}"
+bubbleSort(arr)
+println "Sorted array: ${arr}"
+```
+
+---
+
+## 24. Elixir 语言 (Elixir Language)
+
+```elixir
+defmodule BubbleSort do
+  def sort(list) do
+    n = length(list)
+    do_sort(list, n, 0)
+  end
+
+  defp do_sort(list, n, i) when i < n - 1 do
+    {new_list, swapped} = bubble_pass(list, n, 0, false)
+    if swapped do
+      do_sort(new_list, n, i + 1)
+    else
+      new_list
+    end
+  end
+  defp do_sort(list, _, _), do: list
+
+  defp bubble_pass(list, n, j, swapped) when j < n - 1 do
+    case list do
+      [h1, h2 | t] when h1 > h2 ->
+        {new_list, _} = bubble_pass([h2, h1 | t], n, j + 1, true)
+        {new_list, true}
+      [h1, h2 | t] ->
+        {new_list, _} = bubble_pass([h1, h2 | t], n, j + 1, swapped)
+        {new_list, swapped}
+      _ -> {list, swapped}
+    end
+  end
+  defp bubble_pass(list, _, _, swapped), do: {list, swapped}
+
+  def main do
+    arr = [64, 34, 25, 12, 22, 11, 90]
+    IO.puts "Original list: #{inspect(arr)}"
+    sorted_arr = sort(arr)
+    IO.puts "Sorted list: #{inspect(sorted_arr)}"
+  end
+end
+
+# To run:
+# iex
+# c("bubble_sort.ex")
+# BubbleSort.main()
+```
+*注意：与 Erlang 类似，Elixir 也是函数式语言，数据是不可变的。上述代码是模拟命令式冒泡排序的尝试，不是 Elixir 的最佳实践。*
+
+---
+
+## 25. Clojure 语言 (Clojure Language)
+
+```clojure
+(defn bubble-sort [arr]
+  (let [n (count arr)]
+    (loop [i 0 arr arr]
+      (if (< i (- n 1))
+        (let [new-arr
+              (loop [j 0 current-arr arr]
+                (if (< j (- n i 1))
+                  (if (> (nth current-arr j) (nth current-arr (+ j 1)))
+                    (let [temp (nth current-arr j)
+                          new-current-arr (assoc current-arr j (nth current-arr (+ j 1)))]
+                      (recur (+ j 1) (assoc new-current-arr (+ j 1) temp)))
+                    (recur (+ j 1) current-arr))
+                  current-arr))]
+          (recur (+ i 1) new-arr))
+        arr))))
+
+(let [arr [64 34 25 12 22 11 90]]
+  (println "Original array:" arr)
+  (println "Sorted array:" (bubble-sort arr)))
+```
+*注意：Clojure 是函数式语言，数据结构默认是不可变的。直接实现冒泡排序会涉及到频繁的 `assoc` 操作，效率不高。更符合 Clojure 风格的排序会使用 `sort` 函数或更适合函数式范式的算法。*
+
+---
+
+## 26. Crystal 语言 (Crystal Language)
+
+```crystal
+def bubble_sort(arr : Array(Int))
+  n = arr.size
+  (n - 1).times do |i|
+    (n - i - 1).times do |j|
+      if arr[j] > arr[j + 1]
+        arr[j], arr[j + 1] = arr[j + 1], arr[j]
+      end
+    end
+  end
+  arr
+end
+
+arr = [64, 34, 25, 12, 22, 11, 90]
+puts "Original array: #{arr}"
+bubble_sort(arr)
+puts "Sorted array: #{arr}"
+```
+
+---
+
+## 27. Nim 语言 (Nim Language)
+
+```nim
+proc bubbleSort[T](arr: var seq[T]) {.discardable.} =
+  let n = arr.len
+  for i in 0 ..< n - 1:
+    for j in 0 ..< n - i - 1:
+      if arr[j] > arr[j + 1]:
+        swap(arr[j], arr[j + 1])
+
+var arr = @[64, 34, 25, 12, 22, 11, 90]
+echo "Original array: ", arr
+bubbleSort(arr)
+echo "Sorted array: ", arr
+```
+
+---
+
+## 28. D 语言 (D Language)
+
+```d
+import std.stdio;
+import std.algorithm.swap;
+
+void bubbleSort(T)(ref T[] arr) {
+    auto n = arr.length;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+void main() {
+    int[] arr = [64, 34, 25, 12, 22, 11, 90];
+    writeln("Original array: ", arr);
+    bubbleSort(arr);
+    writeln("Sorted array: ", arr);
+}
+```
+
+---
+
+## 29. Lisp (Common Lisp) 语言
+
+```lisp
+(defun bubble-sort (list)
+  (let* ((len (length list))
+         (arr (make-array len :initial-contents list)))
+    (loop for i from 0 below (- len 1) do
+      (loop for j from 0 below (- len i 1) do
+        (when (> (aref arr j) (aref arr (+ j 1)))
+          (rotatef (aref arr j) (aref arr (+ j 1))))))
+    (coerce arr 'list)))
+
+(defun main ()
+  (let ((arr '(64 34 25 12 22 11 90)))
+    (format t "Original list: ~a~%" arr)
+    (format t "Sorted list: ~a~%" (bubble-sort arr))))
+
+;; To run in a Lisp environment (e.g., SBCL):
+;; (load "your_file.lisp")
+;; (main)
+```
+*注意：Lisp 通常使用链表作为主要数据结构，而冒泡排序在数组上效率更高。这里将列表转换为数组进行操作，然后转换回列表。*
+
+---
+
+## 30. F# (Script) 语言
+
+```fsharp
+// This is an F# script, similar to the F# language example but for direct execution.
+
+let bubbleSort (arr: int array) =
+    let n = Array.length arr
+    for i = 0 to n - 2 do
+        for j = 0 to n - i - 2 do
+            if arr.[j] > arr.[j + 1] then
+                let temp = arr.[j]
+                arr.[j] <- arr.[j + 1]
+                arr.[j + 1] <- temp
+
+let arr = [|64; 34; 25; 12; 22; 11; 90|]
+printfn "Original array: %A" arr
+bubbleSort arr
+printfn "Sorted array: %A" arr
+```
+
+---
+
+## 31. PowerShell 语言
+
+```powershell
+function BubbleSort {
+    param (
+        [int[]]$arr
+    )
+
+    $n = $arr.Length
+    for ($i = 0; $i -lt ($n - 1); $i++) {
+        for ($j = 0; $j -lt ($n - $i - 1); $j++) {
+            if ($arr[$j] -gt $arr[$j + 1]) {
+                # Swap elements
+                $temp = $arr[$j]
+                $arr[$j] = $arr[$j + 1]
+                $arr[$j + 1] = $temp
+            }
+        }
+    }
+    return $arr
+}
+
+$myArray = @(64, 34, 25, 12, 22, 11, 90)
+Write-Host "Original array: $($myArray -join ', ')"
+$sortedArray = BubbleSort $myArray
+Write-Host "Sorted array: $($sortedArray -join ', ')"
+```
+
+---
+
+## 32. VHDL (Very High Speed Integrated Circuit Hardware Description Language)
+
+*注意：VHDL 是一种硬件描述语言，用于设计数字电路。冒泡排序是一种算法，通常在软件中实现。在 VHDL 中直接实现一个通用的、可变长度的数组冒泡排序是不切实际的，因为它不是为这种用途设计的。VHDL 更关注并行硬件操作，而不是顺序算法。*
+
+*如果要“实现”冒泡排序的概念，通常会将其映射到特定的硬件结构，例如一个有限状态机 (FSM) 和数据路径，用于对固定大小的输入进行排序。这将涉及大量的底层硬件设计细节，而不是一个简单的函数。因此，这里提供一个概念性的、非常简化的 VHDL 代码片段，说明如果要在 VHDL 中进行比较和交换，可能会是什么样子，但它不是一个完整的、可运行的通用冒泡排序实现。*
+
+```vhdl
+-- VHDL 示例: 概念性的比较和交换模块
+-- 这不是一个完整的冒泡排序实现，仅用于演示 VHDL 中的数据操作。
+-- 冒泡排序通常不直接在 VHDL 中以通用软件算法的形式实现。
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity bubble_compare_swap is
+    port (
+        clk     : in std_logic;
+        reset   : in std_logic;
+        data_in_a : in std_logic_vector(7 downto 0); -- 8-bit data input A
+        data_in_b : in std_logic_vector(7 downto 0); -- 8-bit data input B
+        data_out_min : out std_logic_vector(7 downto 0); -- Output for the smaller value
+        data_out_max : out std_logic_vector(7 downto 0)  -- Output for the larger value
+    );
+end entity bubble_compare_swap;
+
+architecture behavioral of bubble_compare_swap is
+begin
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                data_out_min <= (others => '0');
+                data_out_max <= (others => '0');
+            else
+                -- Compare and swap logic
+                if unsigned(data_in_a) > unsigned(data_in_b) then
+                    data_out_min <= data_in_b;
+                    data_out_max <= data_in_a;
+                else
+                    data_out_min <= data_in_a;
+                    data_out_max <= data_in_b;
+                end if;
+            end if;
+        end if;
+    end process;
+end architecture behavioral;
+
+-- 要在 VHDL 中实现完整的冒泡排序，你需要：
+-- 1. 定义一个固定大小的数组（例如，一个 register array）。
+-- 2. 实现一个状态机来控制比较和交换的迭代过程。
+-- 3. 管理数组的索引和数据移动。
+-- 这将远比上述简单的模块复杂得多，并且通常只在特定硬件加速器设计中考虑。
+```
+
+---
 """###

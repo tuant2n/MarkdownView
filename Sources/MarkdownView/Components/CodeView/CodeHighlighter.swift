@@ -164,7 +164,7 @@ public extension CodeHighlighter {
     }
 
     func beginHighlight(request: HighlightRequest, onEvent: @escaping (HighlightResult) -> Void) {
-        guard !request.content.isEmpty else { return } // well, wdym?
+        guard !request.content.isEmpty else { return }
 
         let match = lookup(language: request.language, content: request.content)
         switch match {
@@ -174,12 +174,12 @@ public extension CodeHighlighter {
         case let .prefix(map):
             onEvent(.cache(task: request.taskIdentifier, map))
         case .none:
-            break
+            onEvent(.cache(task: request.taskIdentifier, .init())) // so view will update
         }
 
         queueLock.lock()
         highlightRequestQueue.removeAll { $0.callerIdentifier == request.callerIdentifier }
-        highlightRequestQueue.append(request)
+        highlightRequestQueue.insert(request, at: 0)
         queueLock.unlock()
 
         autoreleasepool {

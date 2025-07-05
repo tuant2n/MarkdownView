@@ -31,13 +31,11 @@ private class ViewBox<T: UIView>: ObjectPool<T> {
     override func acquire() -> T {
         while true {
             let item = super.acquire()
-            guard item.superview == nil else { continue }
             return item
         }
     }
 
     override func release(_ item: T) {
-        item.removeFromSuperview()
         super.release(item)
     }
 }
