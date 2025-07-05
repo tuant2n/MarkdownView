@@ -195,7 +195,7 @@ extension MarkdownParser {
         for match in matches {
             let fullMatchRange = match.range(at: 0)
             guard fullMatchRange.location != NSNotFound else { continue }
-            
+
             // 找到第一个有效的捕获组（数学内容）
             var mathContent: String?
             for groupIndex in 1 ..< match.numberOfRanges {
@@ -205,7 +205,7 @@ extension MarkdownParser {
                     break
                 }
             }
-            
+
             guard let content = mathContent else { continue }
 
             if fullMatchRange.location > lastEnd {

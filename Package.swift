@@ -30,6 +30,7 @@ let package = Package(
             "SwiftMath",
             "LRUCache",
             .product(name: "DequeModule", package: "swift-collections"),
+            .product(name: "OrderedCollections", package: "swift-collections"),
         ]),
         .target(name: "MarkdownParser", dependencies: [
             .product(name: "cmark-gfm", package: "swift-cmark"),
