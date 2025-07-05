@@ -13,7 +13,7 @@ import UIKit
 final class ListProcessor {
     private let theme: MarkdownTheme
     private let listIndent: CGFloat
-    private let viewProvider: DrawingViewProvider
+    private let viewProvider: ReusableViewProvider
     private let bulletDrawing: TextBuilder.BulletDrawingCallback?
     private let numberedDrawing: TextBuilder.NumberedDrawingCallback?
     private let checkboxDrawing: TextBuilder.CheckboxDrawingCallback?
@@ -21,7 +21,7 @@ final class ListProcessor {
     init(
         theme: MarkdownTheme,
         listIndent: CGFloat,
-        viewProvider: DrawingViewProvider,
+        viewProvider: ReusableViewProvider,
         bulletDrawing: TextBuilder.BulletDrawingCallback?,
         numberedDrawing: TextBuilder.NumberedDrawingCallback?,
         checkboxDrawing: TextBuilder.CheckboxDrawingCallback?

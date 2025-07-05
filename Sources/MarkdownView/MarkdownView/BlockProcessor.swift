@@ -12,14 +12,14 @@ import UIKit
 
 final class BlockProcessor {
     private let theme: MarkdownTheme
-    private let viewProvider: DrawingViewProvider
+    private let viewProvider: ReusableViewProvider
     private let thematicBreakDrawing: TextBuilder.DrawingCallback?
     private let codeDrawing: TextBuilder.DrawingCallback?
     private let tableDrawing: TextBuilder.DrawingCallback?
 
     init(
         theme: MarkdownTheme,
-        viewProvider: DrawingViewProvider,
+        viewProvider: ReusableViewProvider,
         thematicBreakDrawing: TextBuilder.DrawingCallback?,
         codeDrawing: TextBuilder.DrawingCallback?,
         tableDrawing: TextBuilder.DrawingCallback?

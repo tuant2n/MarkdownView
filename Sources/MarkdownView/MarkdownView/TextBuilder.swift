@@ -10,7 +10,7 @@ import UIKit
 
 final class TextBuilder {
     private let nodes: [MarkdownBlockNode]
-    private let viewProvider: DrawingViewProvider
+    private let viewProvider: ReusableViewProvider
     private var theme: MarkdownTheme
     private let text: NSMutableAttributedString = .init()
     private let renderedContext: RenderedTextContent.Map
@@ -24,7 +24,7 @@ final class TextBuilder {
 
     var listIndent: CGFloat = 20
 
-    init(nodes: [MarkdownBlockNode], renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) {
+    init(nodes: [MarkdownBlockNode], renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) {
         self.nodes = nodes
         self.renderedContext = renderedContext
         self.viewProvider = viewProvider

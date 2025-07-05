@@ -12,7 +12,7 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
             result.append(node.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
@@ -22,7 +22,7 @@ extension [MarkdownInlineNode] {
 }
 
 extension MarkdownInlineNode {
-    func placeImage(theme: MarkdownTheme, image: UIImage, representText: String, viewProvider: DrawingViewProvider) -> NSAttributedString {
+    func placeImage(theme: MarkdownTheme, image: UIImage, representText: String, viewProvider: ReusableViewProvider) -> NSAttributedString {
         let attachment: LTXAttachment = .init()
         let mathView = viewProvider.acquireMathImageView()
         mathView.configure(image: image, text: representText, theme: theme)
@@ -38,7 +38,7 @@ extension MarkdownInlineNode {
         )
     }
 
-    func placeMathImage(theme: MarkdownTheme, image: UIImage, text: String, viewProvider: DrawingViewProvider) -> NSAttributedString {
+    func placeMathImage(theme: MarkdownTheme, image: UIImage, text: String, viewProvider: ReusableViewProvider) -> NSAttributedString {
         let attachment: LTXAttachment = .init()
         let mathView = viewProvider.acquireMathImageView()
         mathView.configure(image: image, text: text, theme: theme)
@@ -54,7 +54,7 @@ extension MarkdownInlineNode {
         )
     }
 
-    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) -> NSAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):

@@ -42,7 +42,7 @@ private class ViewBox<T: UIView>: ObjectPool<T> {
     }
 }
 
-public final class DrawingViewProvider {
+public final class ReusableViewProvider {
     private let codeViewPool: ViewBox<CodeView> = .init {
         CodeView()
     }

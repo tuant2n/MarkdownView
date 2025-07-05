@@ -18,7 +18,7 @@ public final class MarkdownTextView: UIView {
         case string(String)
     }
 
-    private let viewProvider: DrawingViewProvider
+    private let viewProvider: ReusableViewProvider
 
     public private(set) var documentBlocks: [MarkdownBlockNode] = []
     public private(set) var documentRendered: RenderedTextContent.Map = .init()
@@ -49,7 +49,7 @@ public final class MarkdownTextView: UIView {
     }
 
     @available(*, deprecated, message: "Use init() instead.")
-    public init(viewProvider: DrawingViewProvider) {
+    public init(viewProvider: ReusableViewProvider) {
         self.viewProvider = viewProvider
         super.init(frame: .zero)
         configureSubviews()
