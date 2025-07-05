@@ -20,8 +20,8 @@ public final class MarkdownTextView: UIView {
 
     private let viewProvider: DrawingViewProvider
 
-    public private(set) var renderedContexts: RenderedTextContent.Map = .init()
-    public private(set) var nodes: [MarkdownBlockNode] = []
+    public private(set) var documentBlocks: [MarkdownBlockNode] = []
+    public private(set) var documentRendered: RenderedTextContent.Map = .init()
 
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
     public var codePreviewHandler: ((String?, NSAttributedString) -> Void)?
@@ -93,8 +93,8 @@ public final class MarkdownTextView: UIView {
 
     public func setMarkdown(_ content: PreprocessContent) {
         assert(Thread.isMainThread)
-        nodes = content.blocks
-        renderedContexts = content.rendered
+        documentBlocks = content.blocks
+        documentRendered = content.rendered
         // due to a bug in model gemini-flash
         // there might be a large of unknown empty whitespace inside the table
         // thus we hereby call the autoreleasepool to avoid large memory consumption
@@ -105,8 +105,8 @@ public final class MarkdownTextView: UIView {
 
     public func prepareForReuse() {
         viewProvider.releaseAll()
-        renderedContexts = .init()
-        nodes = []
+        documentRendered = .init()
+        documentBlocks = []
         attributedText = nil
         drawingViewsDirtyMarks.removeAll()
         isDrawingViewsReady = false
@@ -148,7 +148,7 @@ extension MarkdownTextView {
         let newDrawingToken = UUID()
         drawingToken = newDrawingToken
 
-        let renderText = TextBuilder(nodes: nodes, renderedContext: renderedContexts, viewProvider: viewProvider)
+        let renderText = TextBuilder(nodes: documentBlocks, renderedContext: documentRendered, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { [weak self] context, line, lineOrigin, depth in
                 guard let self, drawingToken == newDrawingToken else { return }

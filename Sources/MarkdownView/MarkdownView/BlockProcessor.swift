@@ -77,13 +77,9 @@ final class BlockProcessor {
             paragraph.minimumLineHeight = height
         } content: {
             let codeView = viewProvider.acquireCodeView()
-            let theme = theme
-            let lang = language ?? ""
-
             codeView.theme = theme
-            codeView.language = lang
+            codeView.language = language ?? ""
             codeView.content = content
-
             let codeDrawing = self.codeDrawing
             return .init(string: LTXReplacementText, attributes: [
                 .font: theme.fonts.body,

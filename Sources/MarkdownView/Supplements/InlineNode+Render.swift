@@ -76,7 +76,9 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            if let preRendered = renderedContext[string], let image = preRendered.image {
+            if let preRendered = renderedContext["`\(string)`"],
+               let image = preRendered.image
+            {
                 switch MarkdownParser.typeForReplacementText(string) {
                 case .math:
                     let latex = preRendered.text

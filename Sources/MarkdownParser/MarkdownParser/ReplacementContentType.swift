@@ -29,7 +29,11 @@ public extension MarkdownParser {
             return .unknown
         }
         for queryItem in comps.queryItems ?? [] where queryItem.name == "type" {
-            guard let type = ReplacementContentType(rawValue: queryItem.name) else {
+            guard let value = queryItem.value else {
+                assertionFailure()
+                return .unknown
+            }
+            guard let type = ReplacementContentType(rawValue: value) else {
                 assertionFailure()
                 return .unknown
             }
