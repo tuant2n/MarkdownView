@@ -127,10 +127,10 @@ final class CodeView: UIView {
         if let currentTask = currentTaskIdentifier {
             CodeHighlighter.current.cancelHighlight(taskIdentifier: currentTask)
         }
-        
+
         let taskIdentifier = UUID()
         currentTaskIdentifier = taskIdentifier
-        
+
         let request = CodeHighlighter.HighlightRequest(
             taskIdentifier: taskIdentifier,
             callerIdentifier: callerIdentifier,
@@ -138,10 +138,10 @@ final class CodeView: UIView {
             content: code,
             theme: theme
         )
-        
+
         CodeHighlighter.current.beginHighlight(request: request) { [weak self] result in
             guard let self else { return }
-            
+
             DispatchQueue.main.async {
                 self.handleHighlightResult(result)
             }
@@ -153,7 +153,7 @@ final class CodeView: UIView {
         case let .cache(task, map):
             guard task == currentTaskIdentifier else { return }
             calculatedAttributes = map
-            
+
         case let .highlighted(task, map):
             guard task == currentTaskIdentifier else { return }
             calculatedAttributes = map
