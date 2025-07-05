@@ -14,17 +14,24 @@ final class CodeView: UIView {
     // please strictly follow the order
 
     var theme: MarkdownTheme = .default {
-        didSet { languageLabel.font = theme.fonts.code }
+        didSet {
+            languageLabel.font = theme.fonts.code
+            rotateTaskIdentifier()
+        }
     }
 
     var language: String = "" {
-        didSet { languageLabel.text = language }
+        didSet {
+            languageLabel.text = language
+            rotateTaskIdentifier()
+        }
     }
 
     var content: String = "" {
         didSet {
             if content.isEmpty {
                 textView.attributedText = .init()
+                rotateTaskIdentifier()
             } else {
                 performHighlight(with: content)
             }
@@ -89,17 +96,21 @@ final class CodeView: UIView {
         previewAction?(language, textView.attributedText)
     }
 
-    private func performHighlight(with code: String) {
-        // cancel the previous task if it exists
+    @discardableResult
+    private func rotateTaskIdentifier() -> UUID {
         if let currentTask = currentTaskIdentifier {
-            CodeHighlighter.current.cancelHighlight(taskIdentifier: currentTask)
+            DispatchQueue.global().async {
+                CodeHighlighter.current.cancelHighlight(taskIdentifier: currentTask)
+            }
         }
+        let newTaskIdentifier = UUID()
+        currentTaskIdentifier = newTaskIdentifier
+        return newTaskIdentifier
+    }
 
-        let taskIdentifier = UUID()
-        currentTaskIdentifier = taskIdentifier
-
+    private func performHighlight(with code: String) {
         let request = CodeHighlighter.HighlightRequest(
-            taskIdentifier: taskIdentifier,
+            taskIdentifier: rotateTaskIdentifier(),
             callerIdentifier: callerIdentifier,
             language: language,
             content: code,
@@ -108,7 +119,6 @@ final class CodeView: UIView {
 
         CodeHighlighter.current.beginHighlight(request: request) { [weak self] result in
             guard let self else { return }
-
             if Thread.isMainThread {
                 handleHighlightResult(result)
             } else {
