@@ -300,7 +300,6 @@ private extension CodeHighlighter {
 
     func extractColorAttributes(from attributedString: NSAttributedString) -> HighlightMap {
         var attributes: [NSRange: UIColor] = [:]
-        let nsString = attributedString.string as NSString
 
         attributedString.enumerateAttribute(
             .foregroundColor,
