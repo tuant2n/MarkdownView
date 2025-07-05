@@ -256,6 +256,12 @@ private extension CodeHighlighter {
 
     func insertCacheWithoutLock(_ cache: RenderCache) {
         var currentPrefixCaches = renderCache[cache.prefixHash] ?? [] // prefix includes language
+        var shouldRemoveIndexes: [Int] = []
+        defer {
+            for index in shouldRemoveIndexes.reversed() {
+                currentPrefixCaches.remove(at: index)
+            }
+        }
         for index in 0 ..< currentPrefixCaches.count {
             let oldCache = currentPrefixCaches[index]
             let commonPrefixLen = commonPrefixLength(
@@ -267,7 +273,7 @@ private extension CodeHighlighter {
             if commonPrefixLen == oldCache.content.count, // old cache is prefix of new cache
                commonPrefixLen <= cache.content.count // if is equal, update to keep the seq number bigger
             {
-                currentPrefixCaches.remove(at: index)
+                shouldRemoveIndexes.append(index)
                 // also replace other for robustness
                 continue
             }
