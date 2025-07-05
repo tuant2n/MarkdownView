@@ -15,7 +15,7 @@ private class ObjectPool<T> {
     }
 
     open func acquire() -> T {
-        if let object = objects.popLast() {
+        if let object = objects.popFirst() {
             object
         } else {
             factory()
