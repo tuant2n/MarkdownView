@@ -245,7 +245,7 @@ private extension CodeHighlighter {
             )
 
             cacheLock.lock()
-            insertCache(cache)
+            insertCacheWithoutLock(cache)
             compactRenderCacheIfNeededWithoutLock()
             cacheLock.unlock()
 
@@ -254,21 +254,30 @@ private extension CodeHighlighter {
         }
     }
 
-    func insertCache(_ cache: RenderCache) {
+    func insertCacheWithoutLock(_ cache: RenderCache) {
         var currentPrefixCaches = renderCache[cache.prefixHash] ?? [] // prefix includes language
-        let replaceIndex = currentPrefixCaches.firstIndex { oldCache in
-            let commonPrefixLen = self.commonPrefixLength(
+        for index in 0 ..< currentPrefixCaches.count {
+            let oldCache = currentPrefixCaches[index]
+            let commonPrefixLen = commonPrefixLength(
                 lhs: oldCache.content,
                 rhs: cache.content
             )
-            if commonPrefixLen == oldCache.content.count {
-                return true
+            guard commonPrefixLen > 0 else { continue }
+            // now we have to determine which one is longer
+            if commonPrefixLen == oldCache.content.count, // old cache is prefix of new cache
+               commonPrefixLen <= cache.content.count // if is equal, update to keep the seq number bigger
+            {
+                currentPrefixCaches.remove(at: index)
+                // also replace other for robustness
+                continue
             }
-            return false
-        }
-        if let replaceIndex {
-            // so we keep seq sorted
-            currentPrefixCaches.remove(at: replaceIndex)
+            // otherwise check if this result is a prefix of old cache
+            if commonPrefixLen == cache.content.count,
+               commonPrefixLen <= oldCache.content.count
+            {
+                // a longer cache exists, this cache should be discarded
+                return
+            }
         }
         currentPrefixCaches.append(cache)
         renderCache[cache.prefixHash] = currentPrefixCaches
