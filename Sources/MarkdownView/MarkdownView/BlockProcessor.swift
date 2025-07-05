@@ -31,7 +31,7 @@ final class BlockProcessor {
         self.tableDrawing = tableDrawing
     }
 
-    func processHeading(level _: Int, contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
+    func processHeading(level _: Int, contents: [MarkdownInlineNode], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let font: UIFont = theme.fonts.title
 
         return withParagraph { paragraph in
@@ -47,7 +47,7 @@ final class BlockProcessor {
         }
     }
 
-    func processParagraph(contents: [MarkdownInlineNode], renderedContext: RenderContext) -> NSAttributedString {
+    func processParagraph(contents: [MarkdownInlineNode], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         withParagraph { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.lineSpacing = 4
@@ -104,7 +104,7 @@ final class BlockProcessor {
         return result
     }
 
-    func processTable(rows: [RawTableRow], renderedContext: RenderContext) -> NSAttributedString {
+    func processTable(rows: [RawTableRow], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let tableView = viewProvider.acquireTableView()
         let contents = rows.map {
             $0.cells.map { rawCell in

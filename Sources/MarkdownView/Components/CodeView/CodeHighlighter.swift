@@ -212,8 +212,6 @@ public extension CodeHighlighter {
 private extension CodeHighlighter {
     func executeHighlight(taskIdentifier: UUID, onCompletion: @escaping (HighlightMap) -> Void) {
         queue.async { [self] in
-            assert(!Thread.isMainThread)
-
             assert(currentTask == nil)
             currentTask = taskIdentifier
             defer { currentTask = nil }

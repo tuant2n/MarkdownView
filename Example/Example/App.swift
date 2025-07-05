@@ -84,22 +84,10 @@ final class ContentController: UIViewController {
                     let parser = MarkdownParser()
                     let result = parser.parse(streamDocument)
                     let theme = markdownTextView.theme
-                    var renderedContexts: [String: RenderedItem] = [:]
-                    for (key, value) in result.mathContext {
-                        let image = MathRenderer.renderToImage(
-                            latex: value,
-                            fontSize: theme.fonts.body.pointSize,
-                            textColor: theme.colors.body
-                        )?.withRenderingMode(.alwaysTemplate)
-                        let renderedContext = RenderedItem(
-                            image: image,
-                            text: value
-                        )
-                        renderedContexts["math://\(key)"] = renderedContext
-                    }
+                    let rendered = result.render(theme: theme)
                     DispatchQueue.main.asyncAndWait {
                         let date = Date()
-                        markdownTextView.setMarkdown(result.document, renderedContent: renderedContexts)
+                        markdownTextView.setMarkdown(.init(blocks: result.document, rendered: rendered))
                         self.view.setNeedsLayout()
                         self.view.layoutIfNeeded()
                         let time = Date().timeIntervalSince(date)

@@ -20,7 +20,7 @@ public final class MarkdownTextView: UIView {
 
     private let viewProvider: DrawingViewProvider
 
-    public private(set) var renderedContexts: RenderContext = .init()
+    public private(set) var renderedContexts: RenderedTextContent.Map = .init()
     public private(set) var nodes: [MarkdownBlockNode] = []
 
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
@@ -91,40 +91,16 @@ public final class MarkdownTextView: UIView {
         return textView.intrinsicContentSize
     }
 
-    public func setMarkdown(_ blocks: [MarkdownBlockNode], mathContent: [Int: String]) {
-        assert(!Thread.isMainThread)
-
-        let theme = theme
-        var renderedContexts: [String: RenderedItem] = [:]
-
-        for (key, value) in mathContent {
-            let image = MathRenderer.renderToImage(
-                latex: value,
-                fontSize: theme.fonts.body.pointSize,
-                textColor: theme.colors.body
-            )?.withRenderingMode(.alwaysTemplate)
-            let renderedContext = RenderedItem(
-                image: image,
-                text: value
-            )
-            renderedContexts["math://\(key)"] = renderedContext
-        }
-
-        DispatchQueue.main.async {
-            self.setMarkdown(blocks, renderedContent: renderedContexts)
-        }
-    }
-
-    public func setMarkdown(_ blocks: [MarkdownBlockNode], renderedContent: RenderContext) {
+    public func setMarkdown(_ content: PreprocessContent) {
         assert(Thread.isMainThread)
-        renderedContexts = renderedContent
-        nodes = blocks
-        // due to a bug in model gemini-flash, there might be a large of unknown empty whitespace inside the table
+        nodes = content.blocks
+        renderedContexts = content.rendered
+        // due to a bug in model gemini-flash
+        // there might be a large of unknown empty whitespace inside the table
         // thus we hereby call the autoreleasepool to avoid large memory consumption
         autoreleasepool { self.updateTextExecute() }
         setNeedsLayout()
         setNeedsDisplay()
-        layoutIfNeeded()
     }
 
     public func prepareForReuse() {

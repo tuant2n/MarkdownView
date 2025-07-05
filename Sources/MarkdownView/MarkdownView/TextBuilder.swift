@@ -13,7 +13,7 @@ final class TextBuilder {
     private let viewProvider: DrawingViewProvider
     private var theme: MarkdownTheme
     private let text: NSMutableAttributedString = .init()
-    private let renderedContext: RenderContext
+    private let renderedContext: RenderedTextContent.Map
 
     private var bulletDrawing: BulletDrawingCallback?
     private var numberedDrawing: NumberedDrawingCallback?
@@ -24,7 +24,7 @@ final class TextBuilder {
 
     var listIndent: CGFloat = 20
 
-    init(nodes: [MarkdownBlockNode], renderedContext: RenderContext, viewProvider: DrawingViewProvider) {
+    init(nodes: [MarkdownBlockNode], renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) {
         self.nodes = nodes
         self.renderedContext = renderedContext
         self.viewProvider = viewProvider
@@ -77,7 +77,7 @@ final class TextBuilder {
 // MARK: - Block Processing
 
 extension TextBuilder {
-    private func processBlock(_ node: MarkdownBlockNode, renderedContext: RenderContext) -> NSAttributedString {
+    private func processBlock(_ node: MarkdownBlockNode, renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let blockProcessor = BlockProcessor(
             theme: theme,
             viewProvider: viewProvider,

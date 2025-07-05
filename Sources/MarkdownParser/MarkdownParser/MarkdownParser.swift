@@ -50,6 +50,6 @@ public class MarkdownParser {
         }
         var blocks = dumpBlocks(root: nodes)
         blocks = finalizeMathBlocks(blocks, mathContext: math)
-        return .init(document: blocks, mathContext: math.indexedMathContent)
+        return .init(document: blocks, mathContext: math.contents)
     }
 }

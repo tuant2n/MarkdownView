@@ -1,5 +1,5 @@
 //
-//  RenderedItem.swift
+//  RenderedTextContent.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 6/3/25.
@@ -7,11 +7,11 @@
 
 import UIKit
 
-public typealias RenderContext = [String: RenderedItem]
-
-public struct RenderedItem {
+public struct RenderedTextContent {
     public let image: UIImage?
     public let text: String
+
+    public typealias Map = [String: RenderedTextContent]
 
     public init(image: UIImage?, text: String) {
         self.image = image

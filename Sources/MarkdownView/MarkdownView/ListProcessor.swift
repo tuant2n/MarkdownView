@@ -34,22 +34,22 @@ final class ListProcessor {
         self.checkboxDrawing = checkboxDrawing
     }
 
-    func processBulletedList(items: [RawListItem], renderedContext: RenderContext) -> NSAttributedString {
+    func processBulletedList(items: [RawListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let items = flatList(.bulleted(items), currentDepth: 0)
         return renderListItems(items, renderedContext: renderedContext)
     }
 
-    func processNumberedList(startAt index: Int, items: [RawListItem], renderedContext: RenderContext) -> NSAttributedString {
+    func processNumberedList(startAt index: Int, items: [RawListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let items = flatList(.numbered(index, items), currentDepth: 0)
         return renderListItems(items, renderedContext: renderedContext)
     }
 
-    func processTaskList(items: [RawTaskListItem], renderedContext: RenderContext) -> NSAttributedString {
+    func processTaskList(items: [RawTaskListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let items = flatList(.task(items), currentDepth: 0)
         return renderListItems(items, renderedContext: renderedContext)
     }
 
-    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, renderedContext: RenderContext) -> NSAttributedString {
+    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
@@ -83,7 +83,7 @@ final class ListProcessor {
         return string
     }
 
-    private func renderListItems(_ items: [ListItem], renderedContext: RenderContext) -> NSAttributedString {
+    private func renderListItems(_ items: [ListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
         let result = NSMutableAttributedString()
         for (index, item) in items.enumerated() {
             let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1, renderedContext: renderedContext)

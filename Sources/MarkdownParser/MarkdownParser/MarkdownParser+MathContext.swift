@@ -34,7 +34,7 @@ public extension MarkdownParser {
         let document: String
         var indexedContent: String?
 
-        public fileprivate(set) var indexedMathContent: [Int: String] = [:]
+        public fileprivate(set) var contents: [Int: String] = [:]
 
         init(preprocessText: String) {
             document = preprocessText
@@ -78,9 +78,9 @@ public extension MarkdownParser {
 
                 indexer += 1
 
-                indexedMathContent[mathIndex] = mathContent
+                contents[mathIndex] = mathContent
 
-                let replacement = "`math://\(mathIndex)`"
+                let replacement = MarkdownParser.replacementText(for: .math, identifier: String(mathIndex))
                 document.replaceSubrange(fullRange, with: replacement)
             }
 
@@ -145,7 +145,7 @@ extension MarkdownParser {
             }
             return [.table(columnAlignments: columnAlignments, rows: processedRows)]
         case let .codeBlock(language, content):
-            // restore math content in code blocks if found, we dont want `math://` links in code blocks
+            // restore replacement content in code blocks if found, we dont want bad links in code blocks
             return [.codeBlock(fenceInfo: language, content: restore(content: content, mathContext: mathContext))]
         case let .heading(level: level, content: content):
             return [.heading(level: level, content: finalizeInlineMathInNodes(content, mathContext: mathContext))]
@@ -156,8 +156,8 @@ extension MarkdownParser {
 
     private func restore(content: String, mathContext: MathContext) -> String {
         var content = content
-        for (index, mathContent) in mathContext.indexedMathContent.sorted(by: { $0.key < $1.key }) {
-            let placeholder = "`math://\(index)`"
+        for (index, mathContent) in mathContext.contents.sorted(by: { $0.key < $1.key }) {
+            let placeholder = Self.replacementText(for: .math, identifier: .init(index))
             content = content.replacingOccurrences(of: placeholder, with: mathContent)
         }
         return content
@@ -215,9 +215,10 @@ extension MarkdownParser {
                 if !beforeText.isEmpty { result.append(.text(beforeText)) }
             }
 
-            let mathIndex = mathContext.indexedMathContent.count
-            mathContext.indexedMathContent[mathIndex] = content
-            result.append(.code("math://\(mathIndex)"))
+            let mathIndex = mathContext.contents.count
+            mathContext.contents[mathIndex] = content
+            let placeholder = Self.replacementText(for: .math, identifier: .init(mathIndex))
+            result.append(.code(placeholder))
 
             lastEnd = fullMatchRange.location + fullMatchRange.length
         }

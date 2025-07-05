@@ -12,7 +12,7 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, renderedContext: RenderContext, viewProvider: DrawingViewProvider) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
             result.append(node.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
@@ -54,7 +54,7 @@ extension MarkdownInlineNode {
         )
     }
 
-    func render(theme: MarkdownTheme, renderedContext: RenderContext, viewProvider: DrawingViewProvider) -> NSAttributedString {
+    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: DrawingViewProvider) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):
@@ -76,23 +76,13 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            if let preRendered = renderedContext[string] {
-                if let image = preRendered.image {
-                    if string.hasPrefix("math://") {
-                        let latex = preRendered.text
-                        return placeMathImage(theme: theme, image: preRendered.image!, text: latex, viewProvider: viewProvider)
-                    } else {
-                        return placeImage(theme: theme, image: image, representText: preRendered.text, viewProvider: viewProvider)
-                    }
-                } else {
-                    return NSAttributedString(
-                        string: preRendered.text,
-                        attributes: [
-                            .font: theme.fonts.codeInline,
-                            .foregroundColor: theme.colors.code,
-                            .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
-                        ]
-                    )
+            if let preRendered = renderedContext[string], let image = preRendered.image {
+                switch MarkdownParser.typeForReplacementText(string) {
+                case .math:
+                    let latex = preRendered.text
+                    return placeMathImage(theme: theme, image: preRendered.image!, text: latex, viewProvider: viewProvider)
+                default:
+                    return placeImage(theme: theme, image: image, representText: preRendered.text, viewProvider: viewProvider)
                 }
             }
             return NSAttributedString(
