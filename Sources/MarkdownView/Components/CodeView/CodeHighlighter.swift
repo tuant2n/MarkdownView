@@ -51,10 +51,7 @@ public final class CodeHighlighter {
             self.theme = theme
 
             var content = content
-            while content.hasSuffix("`") {
-                content.removeLast()
-            }
-            while content.hasSuffix("\n") {
+            while content.hasSuffix("`") || content.hasSuffix("\n") {
                 content.removeLast()
             }
             self.content = content
