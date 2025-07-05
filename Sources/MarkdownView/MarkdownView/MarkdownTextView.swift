@@ -36,7 +36,6 @@ public final class MarkdownTextView: UIView {
 
     private var drawingViewsDirtyMarks: [UIView: Bool] = [:]
     private var isDrawingViewsReady: Bool = false
-    private var drawingToken: UUID = .init()
 
     deinit {
         releaseDrawingViews()
@@ -110,7 +109,6 @@ public final class MarkdownTextView: UIView {
         attributedText = nil
         drawingViewsDirtyMarks.removeAll()
         isDrawingViewsReady = false
-        drawingToken = .init()
         subviews.forEach { $0.removeFromSuperview() }
         configureSubviews()
     }
@@ -145,13 +143,10 @@ extension MarkdownTextView {
             return .init(x: lineOrigin.x, y: lineOrigin.y - descent, width: width, height: ascent + descent)
         }
 
-        let newDrawingToken = UUID()
-        drawingToken = newDrawingToken
-
         let renderText = TextBuilder(nodes: documentBlocks, renderedContext: documentRendered, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { [weak self] context, line, lineOrigin, depth in
-                guard let self, drawingToken == newDrawingToken else { return }
+                guard let self else { return }
                 let radius: CGFloat = 3
                 let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
 
@@ -172,7 +167,7 @@ extension MarkdownTextView {
                 }
             }
             .withNumberedDrawing { [weak self] context, line, lineOrigin, index in
-                guard let self, drawingToken == newDrawingToken else { return }
+                guard let self else { return }
                 let string = NSAttributedString(
                     string: "\(index).",
                     attributes: [
@@ -187,7 +182,7 @@ extension MarkdownTextView {
                 CTFrameDraw(frame, context)
             }
             .withCheckboxDrawing { [weak self] context, line, lineOrigin, isChecked in
-                guard let self, drawingToken == newDrawingToken else { return }
+                guard let self else { return }
                 let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -20, dy: 0)
                 let imageConfiguration = UIImage.SymbolConfiguration(scale: .small)
                 let image = if isChecked {
@@ -211,7 +206,7 @@ extension MarkdownTextView {
                 context.fill(targetRect)
             }
             .withThematicBreakDrawing { [weak self] context, line, lineOrigin in
-                guard let self, drawingToken == newDrawingToken else { return }
+                guard let self else { return }
                 let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
 
                 context.setLineWidth(1)
@@ -221,53 +216,31 @@ extension MarkdownTextView {
                 context.strokePath()
             }
             .withCodeDrawing { [weak self] _, line, lineOrigin in
-                guard let self, drawingToken == newDrawingToken else { return }
-                guard let firstRun = line.glyphRuns().first else {
-                    assertionFailure()
-                    return
-                }
+                guard let self else { return }
+                guard let firstRun = line.glyphRuns().first else { return }
                 let attributes = firstRun.attributes
-                guard let codeView = attributes[.contextView] as? CodeView else {
-                    assertionFailure()
-                    return
-                }
+                guard let codeView = attributes[.contextView] as? CodeView else { return }
 
                 drawingViewsDirtyMarks[codeView] = false
-                if codeView.superview != self {
-                    addSubview(codeView)
-                }
+                if codeView.superview != self { addSubview(codeView) }
                 let intrinsicContentSize = codeView.intrinsicContentSize
                 let lineBoundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
                 codeView.frame = .init(
                     origin: .init(x: lineOrigin.x, y: bounds.height - lineBoundingBox.maxY),
                     size: .init(width: bounds.width, height: intrinsicContentSize.height)
                 )
-                if let codePreviewHandler {
-                    codeView.previewAction = { language, attributedString in
-                        codePreviewHandler(language, attributedString)
-                    }
-                } else {
-                    codeView.previewAction = nil
-                }
+                codeView.previewAction = codePreviewHandler
 
                 isDrawingViewsReady = true
             }
             .withTableDrawing { [weak self] _, line, lineOrigin in
-                guard let self, drawingToken == newDrawingToken else { return }
-                guard let firstRun = line.glyphRuns().first else {
-                    assertionFailure()
-                    return
-                }
+                guard let self else { return }
+                guard let firstRun = line.glyphRuns().first else { return }
                 let attributes = firstRun.attributes
-                guard let tableView = attributes[.contextView] as? TableView else {
-                    assertionFailure()
-                    return
-                }
+                guard let tableView = attributes[.contextView] as? TableView else { return }
 
                 drawingViewsDirtyMarks[tableView] = false
-                if tableView.superview != self {
-                    addSubview(tableView)
-                }
+                if tableView.superview != self { addSubview(tableView) }
                 let lineBoundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
                 let intrinsicContentSize = tableView.intrinsicContentSize
                 tableView.frame = .init(
