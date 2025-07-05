@@ -81,8 +81,8 @@ final class BlockProcessor {
             let lang = language ?? ""
 
             codeView.theme = theme
-            codeView.content = content
             codeView.language = lang
+            codeView.content = content
 
             let codeDrawing = self.codeDrawing
             return .init(string: LTXReplacementText, attributes: [

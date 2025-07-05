@@ -8,7 +8,7 @@ import OrderedCollections
 import Splash
 import UIKit
 
-private let kMaxCacheSize = 256 // for each language
+private let kMaxCacheSize = 64 // for each language
 private let kPrefixLength = 8
 
 public final class CodeHighlighter {
@@ -43,6 +43,22 @@ public final class CodeHighlighter {
         let language: String
         let content: String
         let theme: MarkdownTheme
+
+        init(taskIdentifier: UUID, callerIdentifier: UUID, language: String, content: String, theme: MarkdownTheme) {
+            self.taskIdentifier = taskIdentifier
+            self.callerIdentifier = callerIdentifier
+            self.language = language
+            self.theme = theme
+
+            var content = content
+            while content.hasSuffix("`") {
+                content.removeLast()
+            }
+            while content.hasSuffix("\n") {
+                content.removeLast()
+            }
+            self.content = content
+        }
     }
 
     public enum HighlightResult {
@@ -52,7 +68,7 @@ public final class CodeHighlighter {
 
     private var highlightRequestQueue: [HighlightRequest] = []
     private let queueLock = NSLock()
-    private let queue = DispatchQueue(label: "wiki.qaq.render.exec")
+    private let queue = DispatchQueue(label: "wiki.qaq.render.exec", qos: .userInteractive)
     private var currentTask: UUID?
 
     private init() {}
@@ -62,10 +78,15 @@ public final class CodeHighlighter {
 public extension CodeHighlighter {
     func hash(language: String, content: String) -> HashValue {
         let language = language.lowercased()
-        let prefix = content.prefix(kPrefixLength)
-        let padding = String(repeating: "_", count: max(0, kPrefixLength - prefix.count))
-        let hashableString = padding + prefix + language
-        return hashableString.hashValue
+        if content.count < kPrefixLength {
+            // the string is small, do not use prefix hash for this
+            // do the full iteration over commonPrefix later
+            return language.hashValue
+        } else {
+            // now we use prefix to quickly identify the code
+            let hasher = language + content.prefix(kPrefixLength)
+            return hasher.hashValue
+        }
     }
 
     func commonPrefixLength(lhs: String, rhs: String) -> UInt64 {
@@ -120,17 +141,18 @@ public extension CodeHighlighter {
         return .prefix(map: partialMap)
     }
 
-    func quickLoad(
+    func cache(matching prefix: HashValue) -> [RenderCache] {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        return renderCache[prefix] ?? []
+    }
+
+    func lookup(
         language: String,
         content: String
     ) -> RenderCacheMatch {
         let prefixHash = hash(language: language, content: content)
-        cacheLock.lock()
-        defer { cacheLock.unlock() }
-        guard let cache = renderCache[prefixHash], !cache.isEmpty else {
-            return .none
-        }
-        // now scan a hash if found
+        let cache = cache(matching: prefixHash)
         for entry in cache {
             // language is in the prefix hash so do a check
             assert(entry.language == language)
@@ -142,7 +164,9 @@ public extension CodeHighlighter {
     }
 
     func beginHighlight(request: HighlightRequest, onEvent: @escaping (HighlightResult) -> Void) {
-        let match = quickLoad(language: request.language, content: request.content)
+        guard !request.content.isEmpty else { return } // well, wdym?
+
+        let match = lookup(language: request.language, content: request.content)
         switch match {
         case let .full(map):
             onEvent(.cache(task: request.taskIdentifier, map))
@@ -158,8 +182,10 @@ public extension CodeHighlighter {
         highlightRequestQueue.append(request)
         queueLock.unlock()
 
-        executeHighlight(request: request) { map in
-            onEvent(.highlighted(task: request.taskIdentifier, map))
+        autoreleasepool {
+            executeHighlight(taskIdentifier: request.taskIdentifier) { map in
+                onEvent(.highlighted(task: request.taskIdentifier, map))
+            }
         }
     }
 
@@ -184,24 +210,27 @@ public extension CodeHighlighter {
 }
 
 private extension CodeHighlighter {
-    func executeHighlight(request: HighlightRequest, onCompletion: @escaping (HighlightMap) -> Void) {
+    func executeHighlight(taskIdentifier: UUID, onCompletion: @escaping (HighlightMap) -> Void) {
         queue.async { [self] in
+            assert(!Thread.isMainThread)
+
             assert(currentTask == nil)
-            currentTask = request.taskIdentifier
+            currentTask = taskIdentifier
             defer { currentTask = nil }
 
             // remove this item from queue and process it
             queueLock.lock()
-            var foundTarget = false
+            var request: HighlightRequest?
             highlightRequestQueue.removeAll {
-                let isTarget = $0.taskIdentifier == request.taskIdentifier
-                assert(!(foundTarget && isTarget)) // should not have multiple founds
-                if isTarget { foundTarget = true }
-                return isTarget
+                if request != nil { return false }
+                let isTarget = $0.taskIdentifier == taskIdentifier
+                guard isTarget else { return false }
+                request = $0
+                return true
             }
             queueLock.unlock()
 
-            guard foundTarget else { return }
+            guard let request else { return }
             // now we are good to go
 
             let highlightedAttributeString = highlightedAttributeString(
@@ -286,16 +315,25 @@ private extension CodeHighlighter {
     func highlightedAttributeString(language: String, content: String, theme: MarkdownTheme) -> NSAttributedString {
         let codeTheme = theme.codeTheme(withFont: theme.fonts.code)
         let format = AttributedStringOutputFormat(theme: codeTheme)
-        switch language.lowercased() {
-        case "text", "plaintext":
-            return NSAttributedString(string: content)
-        case "swift":
-            let splash = SyntaxHighlighter(format: format, grammar: SwiftGrammar())
-            return splash.highlight(content)
-        default:
-            let splash = SyntaxHighlighter(format: format)
-            return splash.highlight(content)
+        let base = {
+            switch language.lowercased() {
+            case "text", "plaintext":
+                return NSAttributedString(string: content)
+            case "swift":
+                let splash = SyntaxHighlighter(format: format, grammar: SwiftGrammar())
+                return splash.highlight(content)
+            default:
+                let splash = SyntaxHighlighter(format: format)
+                return splash.highlight(content)
+            }
+        }()
+        guard let finalizer = base.mutableCopy() as? NSMutableAttributedString else {
+            return .init()
         }
+        finalizer.addAttributes([
+            .font: codeTheme.font,
+        ], range: .init(location: 0, length: finalizer.length))
+        return finalizer
     }
 
     func extractColorAttributes(from attributedString: NSAttributedString) -> HighlightMap {

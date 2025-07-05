@@ -59,27 +59,6 @@ final class ContentController: UIViewController {
         measureLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
         measureLabel.textColor = .label
 
-        // 新增：初始直接渲染全部 testDocument
-        let parser = MarkdownParser()
-        let result = parser.parse(testDocument)
-        let theme = markdownTextView.theme
-        var renderedContexts: [String: RenderedItem] = [:]
-        for (key, value) in result.mathContext {
-            let image = MathRenderer.renderToImage(
-                latex: value,
-                fontSize: theme.fonts.body.pointSize,
-                textColor: theme.colors.body
-            )?.withRenderingMode(.alwaysTemplate)
-            let renderedContext = RenderedItem(
-                image: image,
-                text: value
-            )
-            renderedContexts["math://\(key)"] = renderedContext
-        }
-        markdownTextView.setMarkdown(result.document, renderedContent: renderedContexts)
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
-
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(play),
