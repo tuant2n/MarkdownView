@@ -23,7 +23,7 @@ public final class CodeHighlighter {
     public typealias Language = String
     public struct RenderCache {
         // used to remove old, we keep at most kMaxCacheSize entries
-        let sequence: UInt64
+        var sequence: UInt64
         let language: String
         var content: String
         var map: HighlightMap
@@ -149,12 +149,25 @@ public extension CodeHighlighter {
         content: String
     ) -> RenderCacheMatch {
         let prefixHash = hash(language: language, content: content)
-        let cache = cache(matching: prefixHash)
-        for entry in cache {
+        var cacheList = cache(matching: prefixHash)
+        for (index, cache) in cacheList.enumerated() {
             // language is in the prefix hash so do a check
-            assert(entry.language == language)
-            let match = contentMatch(cache: entry, incomingText: content)
+            assert(cache.language == language)
+            let match = contentMatch(cache: cache, incomingText: content)
             if case .none = match { continue }
+            // we have a full match, update the sequence to keep it inside ram
+            if case .full = match, index < cacheList.count - 1 {
+                DispatchQueue.global().async { [self] in
+                    cacheList.remove(at: index)
+                    var cache = cache
+                    cache.sequence = cacheSequence
+                    cacheList.append(cache)
+                    cacheSequence += 1
+                    cacheLock.lock()
+                    renderCache[prefixHash] = cacheList
+                    cacheLock.unlock()
+                }
+            }
             return match
         }
         return .none
@@ -179,9 +192,11 @@ public extension CodeHighlighter {
         highlightRequestQueue.append(request)
         queueLock.unlock()
 
-        autoreleasepool {
-            executeHighlight(taskIdentifier: request.taskIdentifier) { map in
-                onEvent(.highlighted(task: request.taskIdentifier, map))
+        queue.async { [self] in
+            autoreleasepool {
+                executeHighlight(taskIdentifier: request.taskIdentifier) { map in
+                    onEvent(.highlighted(task: request.taskIdentifier, map))
+                }
             }
         }
     }
@@ -208,50 +223,48 @@ public extension CodeHighlighter {
 
 private extension CodeHighlighter {
     func executeHighlight(taskIdentifier: UUID, onCompletion: @escaping (HighlightMap) -> Void) {
-        queue.async { [self] in
-            assert(currentTask == nil)
-            currentTask = taskIdentifier
-            defer { currentTask = nil }
+        assert(currentTask == nil)
+        currentTask = taskIdentifier
+        defer { currentTask = nil }
 
-            // remove this item from queue and process it
-            queueLock.lock()
-            var request: HighlightRequest?
-            highlightRequestQueue.removeAll {
-                if request != nil { return false }
-                let isTarget = $0.taskIdentifier == taskIdentifier
-                guard isTarget else { return false }
-                request = $0
-                return true
-            }
-            queueLock.unlock()
-
-            guard let request else { return }
-            // now we are good to go
-
-            let highlightedAttributeString = highlightedAttributeString(
-                language: request.language,
-                content: request.content,
-                theme: request.theme
-            )
-            let map = extractColorAttributes(from: highlightedAttributeString)
-            let prefixHash = hash(language: request.language, content: request.content)
-            cacheSequence += 1
-            let cache = RenderCache(
-                sequence: cacheSequence,
-                language: request.language,
-                content: request.content,
-                map: map,
-                prefixHash: prefixHash
-            )
-
-            cacheLock.lock()
-            insertCacheWithoutLock(cache)
-            compactRenderCacheIfNeededWithoutLock()
-            cacheLock.unlock()
-
-            // completed render
-            onCompletion(cache.map)
+        // remove this item from queue and process it
+        queueLock.lock()
+        var request: HighlightRequest?
+        highlightRequestQueue.removeAll {
+            if request != nil { return false }
+            let isTarget = $0.taskIdentifier == taskIdentifier
+            guard isTarget else { return false }
+            request = $0
+            return true
         }
+        queueLock.unlock()
+
+        guard let request else { return }
+        // now we are good to go
+
+        let highlightedAttributeString = highlightedAttributeString(
+            language: request.language,
+            content: request.content,
+            theme: request.theme
+        )
+        let map = extractColorAttributes(from: highlightedAttributeString)
+        let prefixHash = hash(language: request.language, content: request.content)
+        cacheSequence += 1
+        let cache = RenderCache(
+            sequence: cacheSequence,
+            language: request.language,
+            content: request.content,
+            map: map,
+            prefixHash: prefixHash
+        )
+
+        cacheLock.lock()
+        insertCacheWithoutLock(cache)
+        compactRenderCacheIfNeededWithoutLock()
+        cacheLock.unlock()
+
+        // completed render
+        onCompletion(cache.map)
     }
 
     func insertCacheWithoutLock(_ cache: RenderCache) {
