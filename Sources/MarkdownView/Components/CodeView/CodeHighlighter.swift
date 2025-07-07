@@ -152,7 +152,7 @@ public extension CodeHighlighter {
         var cacheList = cache(matching: prefixHash)
         for (index, cache) in cacheList.enumerated() {
             // language is in the prefix hash so do a check
-            assert(cache.language == language)
+            assert(cache.language.lowercased() == language.lowercased())
             let match = contentMatch(cache: cache, incomingText: content)
             if case .none = match { continue }
             // we have a full match, update the sequence to keep it inside ram
