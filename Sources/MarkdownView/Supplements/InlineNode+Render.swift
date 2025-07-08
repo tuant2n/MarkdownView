@@ -126,7 +126,6 @@ extension MarkdownInlineNode {
         case let .math(content, replacementIdentifier):
             if let item = renderedContext[replacementIdentifier], let image = item.image {
                 let drawingCallback = LTXLineDrawingAction { context, line, lineOrigin in
-                    guard let cgImage = image.cgImage else { return }
                     let glyphRuns = CTLineGetGlyphRuns(line) as NSArray
                     var runOffsetX: CGFloat = 0
                     for i in 0 ..< glyphRuns.count {
@@ -149,9 +148,15 @@ extension MarkdownInlineNode {
                         width: imageSize.width,
                         height: imageSize.height
                     )
-                    context.draw(cgImage, in: rect)
+
+                    context.saveGState()
+                    context.translateBy(x: 0, y: rect.origin.y + rect.size.height)
+                    context.scaleBy(x: 1, y: -1)
+                    context.translateBy(x: 0, y: -rect.origin.y)
+                    image.draw(in: rect)
+                    context.restoreGState()
                 }
-                let attachment = LTXAttachment()
+                let attachment = LTXAttachment.hold(attrString: .init(string: content))
                 attachment.size = image.size
                 return NSAttributedString(
                     string: LTXReplacementText,

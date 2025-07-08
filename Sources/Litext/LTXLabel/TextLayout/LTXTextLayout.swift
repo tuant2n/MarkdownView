@@ -37,7 +37,6 @@ public class LTXTextLayout: NSObject {
     private var framesetter: CTFramesetter
     private var lines: [CTLine]?
     private var _highlightRegions: [Int: LTXHighlightRegion]
-    private var lineDrawingActions: Set<LTXLineDrawingAction> = []
 
     public class func textLayout(
         withAttributedString attributedString: NSAttributedString
@@ -72,8 +71,6 @@ public class LTXTextLayout: NSObject {
     }
 
     public func draw(in context: CGContext) {
-        lineDrawingActions.removeAll()
-
         context.saveGState()
 
         context.setAllowsAntialiasing(true)
@@ -99,13 +96,9 @@ public class LTXTextLayout: NSObject {
 
                 let attributes = CTRunGetAttributes(glyphRun) as! [NSAttributedString.Key: Any]
                 if let action = attributes[LTXLineDrawingCallbackName] as? LTXLineDrawingAction {
-                    if self.lineDrawingActions.contains(action) {
-                        continue
-                    }
                     context.saveGState()
                     action.action(context, line, lineOrigin)
                     context.restoreGState()
-                    self.lineDrawingActions.insert(action)
                 }
             }
         }

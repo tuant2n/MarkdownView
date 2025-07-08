@@ -47,6 +47,7 @@ public enum MathRenderer {
         let (error, image) = mathImage.asImage()
         guard error == nil, let image = image?.withRenderingMode(.alwaysTemplate).withTintColor(.label) else {
             print("[!] MathRenderer failed to render image for content: \(latex) \(error?.localizedDescription ?? "?")")
+            assertionFailure()
             return nil
         }
         renderCache.setValue(image, forKey: latex)
