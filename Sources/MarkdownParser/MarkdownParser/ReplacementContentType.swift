@@ -22,24 +22,16 @@ public extension MarkdownParser {
     }
 
     static func typeForReplacementText(_ text: String) -> ReplacementContentType {
+        guard text.hasPrefix("`"), text.hasSuffix("`") else { return .unknown }
         let text = text.trimmingCharacters(in: .init(charactersIn: "`"))
-        assert(text.hasPrefix("md://content?type="))
         guard let comps = URLComponents(string: text) else {
-            assertionFailure()
             return .unknown
         }
         for queryItem in comps.queryItems ?? [] where queryItem.name == "type" {
-            guard let value = queryItem.value else {
-                assertionFailure()
-                return .unknown
-            }
-            guard let type = ReplacementContentType(rawValue: value) else {
-                assertionFailure()
-                return .unknown
-            }
+            guard let value = queryItem.value else { return .unknown }
+            guard let type = ReplacementContentType(rawValue: value) else { return .unknown }
             return type
         }
-        assertionFailure()
         return .unknown
     }
 

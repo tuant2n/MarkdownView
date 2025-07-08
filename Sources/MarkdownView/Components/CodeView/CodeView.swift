@@ -9,6 +9,11 @@ import UIKit
 final class CodeView: UIView {
     // MARK: - CONTENT
 
+    ///
+    /// **PLEASE STRICTLY FOLLOW THE ORDER AS IS**
+    /// theme -> language -> highlighMap -> content
+    ///
+
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
@@ -25,7 +30,7 @@ final class CodeView: UIView {
 
     var content: String = "" {
         didSet {
-            updateHighlightedContent(calculatedAttributes: highlightMap)
+            textView.attributedText = highlightMap.apply(to: content, with: theme)
         }
     }
 
@@ -92,30 +97,6 @@ final class CodeView: UIView {
     @objc func handlePreview(_: UIButton) {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         previewAction?(language, textView.attributedText)
-    }
-
-    private func updateHighlightedContent(calculatedAttributes: CodeHighlighter.HighlightMap) {
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = CodeViewConfiguration.codeLineSpacing
-
-        let plainTextColor = theme.colors.code
-        let attributedContent: NSMutableAttributedString = .init(
-            string: content,
-            attributes: [
-                .font: theme.fonts.code,
-                .paragraphStyle: paragraphStyle,
-                .foregroundColor: plainTextColor,
-            ]
-        )
-
-        let length = attributedContent.length
-
-        for (range, color) in calculatedAttributes {
-            guard range.location >= 0, range.upperBound <= length else { continue }
-            guard color != plainTextColor else { continue }
-            attributedContent.addAttributes([.foregroundColor: color], range: range)
-        }
-        textView.attributedText = attributedContent
     }
 }
 

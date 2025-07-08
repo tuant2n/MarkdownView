@@ -44,14 +44,23 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            return NSAttributedString(
-                string: string,
-                attributes: [
-                    .font: theme.fonts.codeInline,
-                    .foregroundColor: theme.colors.code,
-                    .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
-                ]
-            )
+            let key = CodeHighlighter.current.key(for: string, language: nil)
+            let controlAttributes: [NSAttributedString.Key: Any] = [
+                .font: theme.fonts.codeInline,
+                .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
+            ]
+            if let highlightMap = context.highlightMaps[key] {
+                let text = highlightMap.apply(to: string, with: theme)
+                text.addAttributes(
+                    controlAttributes,
+                    range: .init(location: 0, length: text.length)
+                )
+                return text
+            } else {
+                let text = NSMutableAttributedString(string: string, attributes: [.foregroundColor: theme.colors.code])
+                text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
+                return text
+            }
         case let .html(content):
             return NSAttributedString(
                 string: content,

@@ -25,7 +25,7 @@ public extension CodeHighlighter {
     func key(for content: String, language: String?) -> Int {
         var hasher = Hasher()
         hasher.combine(content)
-        hasher.combine(language?.lowercased())
+        hasher.combine(language?.lowercased() ?? "")
         return hasher.finalize()
     }
 
@@ -87,5 +87,30 @@ private extension CodeHighlighter {
         }
 
         return attributes
+    }
+}
+
+public extension CodeHighlighter.HighlightMap {
+    func apply(to content: String, with theme: MarkdownTheme) -> NSMutableAttributedString {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = CodeViewConfiguration.codeLineSpacing
+
+        let plainTextColor = theme.colors.code
+        let attributedContent: NSMutableAttributedString = .init(
+            string: content,
+            attributes: [
+                .font: theme.fonts.code,
+                .paragraphStyle: paragraphStyle,
+                .foregroundColor: plainTextColor,
+            ]
+        )
+
+        let length = attributedContent.length
+        for (range, color) in self {
+            guard range.location >= 0, range.upperBound <= length else { continue }
+            guard color != plainTextColor else { continue }
+            attributedContent.addAttributes([.foregroundColor: color], range: range)
+        }
+        return attributedContent
     }
 }
