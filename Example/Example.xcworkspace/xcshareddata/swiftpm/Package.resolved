@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "litext",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/Litext",
-      "state" : {
-        "revision" : "ccc57c2ba7431925ec382e0b6971b43bdbd77c6e",
-        "version" : "0.5.1"
-      }
-    },
-    {
       "identity" : "lookinserver",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/QMUI/LookinServer/",

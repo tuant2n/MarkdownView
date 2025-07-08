@@ -18,7 +18,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-collections", from: "1.2.0"),
         .package(url: "https://github.com/Lakr233/SwiftMath", exact: "1.7.2"),
         .package(url: "https://github.com/Lakr233/Splash", from: "0.17.0"),
-        .package(url: "https://github.com/Lakr233/Litext", from: "0.5.1"),
         .package(url: "https://github.com/swiftlang/swift-cmark", from: "0.6.0"),
         .package(url: "https://github.com/nicklockwood/LRUCache", from: "1.0.7"),
     ],
@@ -36,5 +35,6 @@ let package = Package(
             .product(name: "cmark-gfm", package: "swift-cmark"),
             .product(name: "cmark-gfm-extensions", package: "swift-cmark"),
         ]),
+        .target(name: "Litext"),
     ]
 )
