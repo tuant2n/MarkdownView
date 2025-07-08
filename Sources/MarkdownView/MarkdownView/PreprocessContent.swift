@@ -95,11 +95,7 @@ public extension MarkdownParser.ParseResult {
             }
             if let node = node as? MarkdownInlineNode {
                 switch node {
-                case let .code(string):
-                    let key = CodeHighlighter.current.key(for: string, language: "")
-                    let map = CodeHighlighter.current.highlight(key: key, content: string, language: "")
-                    highlightMaps[key] = map
-                case let .html(string):
+                case let .code(string), let .html(string):
                     let key = CodeHighlighter.current.key(for: string, language: "")
                     let map = CodeHighlighter.current.highlight(key: key, content: string, language: "")
                     highlightMaps[key] = map

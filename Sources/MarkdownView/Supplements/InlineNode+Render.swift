@@ -43,7 +43,7 @@ extension MarkdownInlineNode {
                 .font: theme.fonts.body,
                 .foregroundColor: theme.colors.body,
             ])
-        case let .code(string):
+        case let .code(string), let .html(string):
             let key = CodeHighlighter.current.key(for: string, language: nil)
             let controlAttributes: [NSAttributedString.Key: Any] = [
                 .font: theme.fonts.codeInline,
@@ -69,15 +69,6 @@ extension MarkdownInlineNode {
                 text.append(spacingCharacter)
                 return text
             }
-        case let .html(content):
-            return NSAttributedString(
-                string: content,
-                attributes: [
-                    .font: theme.fonts.codeInline,
-                    .foregroundColor: theme.colors.code,
-                    .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
-                ]
-            )
         case let .emphasis(children):
             let ans = NSMutableAttributedString()
             children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
