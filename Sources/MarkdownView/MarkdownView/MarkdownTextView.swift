@@ -140,7 +140,7 @@ extension MarkdownTextView {
 
         let renderText = TextBuilder(nodes: document.blocks, context: document, viewProvider: viewProvider)
             .withTheme(theme)
-            .withBulletDrawing { [weak self] context, line, lineOrigin, depth in
+            .withBulletDrawing { [weak self] context, line, lineOrigin, depth, indent in
                 guard let self else { return }
                 let radius: CGFloat = 3
                 let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
@@ -148,7 +148,7 @@ extension MarkdownTextView {
                 context.setStrokeColor(theme.colors.body.cgColor)
                 context.setFillColor(theme.colors.body.cgColor)
                 let rect = CGRect(
-                    x: boundingBox.minX - 16,
+                    x: boundingBox.minX - indent,
                     y: boundingBox.midY - radius,
                     width: radius * 2,
                     height: radius * 2
@@ -161,7 +161,7 @@ extension MarkdownTextView {
                     context.fill(rect)
                 }
             }
-            .withNumberedDrawing { [weak self] context, line, lineOrigin, index in
+            .withNumberedDrawing { [weak self] context, line, lineOrigin, index, indent in
                 guard let self else { return }
                 let string = NSAttributedString(
                     string: "\(index).",
@@ -170,15 +170,15 @@ extension MarkdownTextView {
                         .foregroundColor: theme.colors.body,
                     ]
                 )
-                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -20, dy: 0)
+                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -indent, dy: 0)
                 let path = CGPath(rect: rect, transform: nil)
                 let framesetter = CTFramesetterCreateWithAttributedString(string)
                 let frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, string.length), path, nil)
                 CTFrameDraw(frame, context)
             }
-            .withCheckboxDrawing { [weak self] context, line, lineOrigin, isChecked in
+            .withCheckboxDrawing { [weak self] context, line, lineOrigin, isChecked, indent in
                 guard let self else { return }
-                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -20, dy: 0)
+                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -indent, dy: 0)
                 let imageConfiguration = UIImage.SymbolConfiguration(scale: .small)
                 let image = if isChecked {
                     UIImage(systemName: "checkmark.square.fill", withConfiguration: imageConfiguration)

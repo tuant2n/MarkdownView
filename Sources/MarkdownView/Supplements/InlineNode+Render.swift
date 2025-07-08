@@ -49,16 +49,24 @@ extension MarkdownInlineNode {
                 .font: theme.fonts.codeInline,
                 .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
             ]
+            let spacingCharacter = NSAttributedString(string: " ", attributes: [
+                .font: UIFont.systemFont(ofSize: theme.fonts.codeInline.pointSize),
+                .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
+            ])
             if let highlightMap = context.highlightMaps[key] {
                 let text = highlightMap.apply(to: string, with: theme)
                 text.addAttributes(
                     controlAttributes,
                     range: .init(location: 0, length: text.length)
                 )
+                text.insert(spacingCharacter, at: 0)
+                text.append(spacingCharacter)
                 return text
             } else {
                 let text = NSMutableAttributedString(string: string, attributes: [.foregroundColor: theme.colors.code])
                 text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
+                text.insert(spacingCharacter, at: 0)
+                text.append(spacingCharacter)
                 return text
             }
         case let .html(content):

@@ -52,11 +52,22 @@ final class ListProcessor {
         return renderListItems(items)
     }
 
-    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false) -> NSAttributedString {
+    private func listIndentMultiple(for count: Int) -> Int {
+        assert(count >= 0)
+        if count <= 9 { return 1 }
+        if count <= 99 { return 2 }
+        if count <= 999 { return 3 }
+        if count <= 9999 { return 4 }
+        if count <= 99999 { return 5 }
+        assertionFailure() // fuck you
+        return 1
+    }
+
+    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, total: Int) -> NSAttributedString {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
-        let indent = CGFloat(item.depth + 1) * listIndent
+        let indent = CGFloat(item.depth + 1) * listIndent * CGFloat(listIndentMultiple(for: total))
         paragraphStyle.firstLineHeadIndent = indent
         paragraphStyle.headIndent = indent
 
@@ -68,11 +79,11 @@ final class ListProcessor {
             .font: theme.fonts.body,
             .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
                 if item.ordered {
-                    numberedDrawing?(context, line, lineOrigin, item.index)
+                    numberedDrawing?(context, line, lineOrigin, item.index, indent)
                 } else if item.isTask {
-                    checkboxDrawing?(context, line, lineOrigin, item.isDone)
+                    checkboxDrawing?(context, line, lineOrigin, item.isDone, indent)
                 } else {
-                    bulletDrawing?(context, line, lineOrigin, item.depth)
+                    bulletDrawing?(context, line, lineOrigin, item.depth, indent)
                 }
             }),
         ]))
@@ -89,7 +100,7 @@ final class ListProcessor {
     private func renderListItems(_ items: [ListItem]) -> NSAttributedString {
         let result = NSMutableAttributedString()
         for (index, item) in items.enumerated() {
-            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1)
+            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1, total: items.count)
             result.append(rendered)
         }
         return result
