@@ -105,9 +105,7 @@ public class LTXTextLayout: NSObject {
                     context.saveGState()
                     action.action(context, line, lineOrigin)
                     context.restoreGState()
-                    if action.performOncePerAttribute {
-                        self.lineDrawingActions.insert(action)
-                    }
+                    self.lineDrawingActions.insert(action)
                 }
             }
         }

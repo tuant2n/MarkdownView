@@ -2,6 +2,7 @@
   "sourceLanguage" : "en",
   "strings" : {
     "Copy Image" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -12,6 +13,7 @@
       }
     },
     "Copy Text" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {

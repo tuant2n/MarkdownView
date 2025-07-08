@@ -22,33 +22,16 @@ extension [MarkdownInlineNode] {
 }
 
 extension MarkdownInlineNode {
-    func placeImage(theme: MarkdownTheme, image: UIImage, representText: String, viewProvider: ReusableViewProvider) -> NSAttributedString {
+    func placeImage(theme _: MarkdownTheme, image: UIImage, representText _: String) -> NSAttributedString {
         let attachment: LTXAttachment = .init()
-        let mathView = viewProvider.acquireMathImageView()
-        mathView.configure(image: image, text: representText, theme: theme)
-        attachment.view = mathView
-        attachment.size = mathView.intrinsicContentSize
+        attachment.size = image.size
 
         return NSAttributedString(
             string: LTXReplacementText,
             attributes: [
                 LTXAttachmentAttributeName: attachment,
-                kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
-            ]
-        )
-    }
-
-    func placeMathImage(theme: MarkdownTheme, image: UIImage, text: String, viewProvider: ReusableViewProvider) -> NSAttributedString {
-        let attachment: LTXAttachment = .init()
-        let mathView = viewProvider.acquireMathImageView()
-        mathView.configure(image: image, text: text, theme: theme)
-        attachment.view = mathView
-        attachment.size = mathView.intrinsicContentSize
-
-        return NSAttributedString(
-            string: LTXReplacementText,
-            attributes: [
-                LTXAttachmentAttributeName: attachment,
+                LTXLineDrawingCallbackName: LTXLineDrawingAction(action: { _, _, _ in
+                }),
                 kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
             ]
         )
@@ -76,19 +59,8 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string):
-            if let preRendered = renderedContext["`\(string)`"],
-               let image = preRendered.image
-            {
-                switch MarkdownParser.typeForReplacementText(string) {
-                case .math:
-                    let latex = preRendered.text
-                    return placeMathImage(theme: theme, image: preRendered.image!, text: latex, viewProvider: viewProvider)
-                default:
-                    return placeImage(theme: theme, image: image, representText: preRendered.text, viewProvider: viewProvider)
-                }
-            }
             return NSAttributedString(
-                string: "\(string)",
+                string: string,
                 attributes: [
                     .font: theme.fonts.codeInline,
                     .foregroundColor: theme.colors.code,
@@ -97,7 +69,7 @@ extension MarkdownInlineNode {
             )
         case let .html(content):
             return NSAttributedString(
-                string: "\(content)",
+                string: content,
                 attributes: [
                     .font: theme.fonts.codeInline,
                     .foregroundColor: theme.colors.code,
@@ -151,6 +123,56 @@ extension MarkdownInlineNode {
                     .foregroundColor: theme.colors.body,
                 ]
             )
+        case let .math(content, replacementIdentifier):
+            if let item = renderedContext[replacementIdentifier], let image = item.image {
+                let drawingCallback = LTXLineDrawingAction { context, line, lineOrigin in
+                    guard let cgImage = image.cgImage else { return }
+                    let glyphRuns = CTLineGetGlyphRuns(line) as NSArray
+                    var runOffsetX: CGFloat = 0
+                    for i in 0 ..< glyphRuns.count {
+                        let run = glyphRuns[i] as! CTRun
+                        let attributes = CTRunGetAttributes(run) as! [NSAttributedString.Key: Any]
+                        if attributes[.contextImage] as? UIImage == image {
+                            break
+                        }
+                        runOffsetX += CTRunGetTypographicBounds(run, CFRange(location: 0, length: 0), nil, nil, nil)
+                    }
+
+                    var ascent: CGFloat = 0
+                    var descent: CGFloat = 0
+                    CTLineGetTypographicBounds(line, &ascent, &descent, nil)
+
+                    let imageSize = image.size
+                    let rect = CGRect(
+                        x: lineOrigin.x + runOffsetX,
+                        y: lineOrigin.y,
+                        width: imageSize.width,
+                        height: imageSize.height
+                    )
+                    context.draw(cgImage, in: rect)
+                }
+                let attachment = LTXAttachment()
+                attachment.size = image.size
+                return NSAttributedString(
+                    string: LTXReplacementText,
+                    attributes: [
+                        LTXAttachmentAttributeName: attachment,
+                        LTXLineDrawingCallbackName: drawingCallback,
+                        kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
+                        .contextImage: image,
+                    ]
+                )
+            } else {
+                assertionFailure()
+                return NSAttributedString(
+                    string: content,
+                    attributes: [
+                        .font: theme.fonts.codeInline,
+                        .foregroundColor: theme.colors.code,
+                        .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
+                    ]
+                )
+            }
         }
     }
 }

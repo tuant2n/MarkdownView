@@ -9,7 +9,7 @@ import Foundation
 
 public extension MarkdownParser {
     static func replacementText(for contentType: String, identifier: String) -> String {
-        "`" + "md://content?type=\(contentType)&index=\(identifier)" + "`"
+        "`" + "md://content?type=\(contentType)&identifier=\(identifier)" + "`"
     }
 
     enum ReplacementContentType: String {
@@ -41,5 +41,23 @@ public extension MarkdownParser {
         }
         assertionFailure()
         return .unknown
+    }
+
+    static func identifierForReplacementText(_ text: String) -> String? {
+        let text = text.trimmingCharacters(in: .init(charactersIn: "`"))
+        assert(text.hasPrefix("md://content?type="))
+        guard let comps = URLComponents(string: text) else {
+            assertionFailure()
+            return nil
+        }
+        for queryItem in comps.queryItems ?? [] where queryItem.name == "identifier" {
+            guard let value = queryItem.value else {
+                assertionFailure()
+                return nil
+            }
+            return value
+        }
+        assertionFailure()
+        return nil
     }
 }

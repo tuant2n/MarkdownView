@@ -12,8 +12,8 @@ private let mathPattern: NSRegularExpression? = {
         ###"\$\$([\s\S]*?)\$\$"###, // 块级公式 $$ ... $$
         ###"\\\\\[([\s\S]*?)\\\\\]"###, // 带转义的块级公式 \\[ ... \\]
         ###"\\\\\(([\s\S]*?)\\\\\)"###, // 带转义的行内公式 \\( ... \\)
-        ###"\\\[([\s\S]*?)\\\]"###, // 单个反斜杠的块级公式 \[ ... \]
-        ###"\\\(([^`\n]*?)\\\)"###, // 单个反斜杠的块级公式 \( ... \)，中间不能有 ` 和 换行
+        ###"\\\[ ([\s\S]*?) \\\]"###, // 单个反斜杠的块级公式 \[ ... \]，前后需要空格
+        ###"\\\( ([^`\n]*?) \\\)"###, // 单个反斜杠的块级公式 \( ... \)，前后需要空格，中间不能有 ` 和 换行
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
@@ -91,9 +91,8 @@ public extension MarkdownParser {
 
 private let mathPatternWithinBlock: NSRegularExpression? = {
     let patterns = [
-        ###"\\\(([^\r\n]+?)\\\)"###, // 行内公式 \(...\)
-//        ###"\( ([^\r\n]+?) \)"###, // 行内公式 ( ... )
-        ###"\$([^\r\n]+?)\$"###, // 行内公式 $ ... $
+        ###"\\\( ([^\r\n]+?) \\\)"###, // 行内公式 \(...\)
+        ###"\$ ([^\r\n]+?) \$"###, // 行内公式 $ ... $
     ]
     let pattern = patterns.joined(separator: "|")
     guard let regex = try? NSRegularExpression(
@@ -149,8 +148,8 @@ extension MarkdownParser {
             return [.codeBlock(fenceInfo: language, content: restore(content: content, mathContext: mathContext))]
         case let .heading(level: level, content: content):
             return [.heading(level: level, content: finalizeInlineMathInNodes(content, mathContext: mathContext))]
-        case .thematicBreak:
-            return [.thematicBreak]
+        default:
+            return [node]
         }
     }
 
@@ -169,7 +168,24 @@ extension MarkdownParser {
         for node in nodes {
             switch node {
             case let .text(text):
-                result.append(contentsOf: processInlineMathInText(text, mathContext: mathContext))
+                result.append(contentsOf: processInlineMathInTextWithRegExMather(text, mathContext: mathContext))
+            case let .code(content):
+                if Self.typeForReplacementText(content) == .math,
+                   let identifier = Self.identifierForReplacementText(content),
+                   let value = Int(identifier),
+                   let content = mathContext.contents[value]
+                {
+                    result.append(.math(
+                        content: content,
+                        replacementIdentifier: Self.replacementText(
+                            for: .math,
+                            identifier: identifier
+                        )
+                    )
+                    )
+                } else {
+                    result.append(node)
+                }
             default:
                 result.append(node)
             }
@@ -178,16 +194,15 @@ extension MarkdownParser {
         return result
     }
 
-    private func processInlineMathInText(_ text: String, mathContext: MathContext) -> [MarkdownInlineNode] {
-        guard let regex = mathPatternWithinBlock else {
-            return [.text(text)]
-        }
+    private func processInlineMathInTextWithContextMather(_: String, mathContext _: MathContext) -> [MarkdownInlineNode] {
+        []
+    }
+
+    private func processInlineMathInTextWithRegExMather(_ text: String, mathContext: MathContext) -> [MarkdownInlineNode] {
+        guard let regex = mathPatternWithinBlock else { return [.text(text)] }
 
         let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
-
-        if matches.isEmpty {
-            return [.text(text)]
-        }
+        if matches.isEmpty { return [.text(text)] }
 
         var result: [MarkdownInlineNode] = []
         var lastEnd = 0
@@ -218,7 +233,7 @@ extension MarkdownParser {
             let mathIndex = mathContext.contents.count
             mathContext.contents[mathIndex] = content
             let placeholder = Self.replacementText(for: .math, identifier: .init(mathIndex))
-            result.append(.code(placeholder))
+            result.append(.math(content: content, replacementIdentifier: placeholder))
 
             lastEnd = fullMatchRange.location + fullMatchRange.length
         }

@@ -45,7 +45,7 @@ public enum MathRenderer {
             labelMode: .text
         )
         let (error, image) = mathImage.asImage()
-        guard error == nil, let image else {
+        guard error == nil, let image = image?.withRenderingMode(.alwaysTemplate).withTintColor(.label) else {
             print("[!] MathRenderer failed to render image for content: \(latex) \(error?.localizedDescription ?? "?")")
             return nil
         }

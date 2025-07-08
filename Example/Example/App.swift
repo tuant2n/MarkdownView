@@ -71,6 +71,17 @@ final class ContentController: UIViewController {
             name: .init("Reset"),
             object: nil
         )
+
+        let parser = MarkdownParser()
+        let result = parser.parse(testDocument)
+        let theme = markdownTextView.theme
+        let rendered = result.render(theme: theme)
+        let date = Date()
+        markdownTextView.setMarkdown(.init(blocks: result.document, rendered: rendered))
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        let time = Date().timeIntervalSince(date)
+        measureLabel.text = String(format: "Time: %.4f ms", time * 1000)
     }
 
     private var streamDocument = ""
@@ -105,6 +116,8 @@ final class ContentController: UIViewController {
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
 
+        let date = Date()
+
         scrollView.frame = view.bounds
         let width = view.bounds.width - 32
 
@@ -136,6 +149,9 @@ final class ContentController: UIViewController {
         )
         _ = offset
         scrollView.setContentOffset(offset, animated: false)
+
+        let time = Date().timeIntervalSince(date)
+        measureLabel.text = String(format: "Time: %.4f ms", time * 1000)
     }
 }
 

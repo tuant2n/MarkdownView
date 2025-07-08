@@ -49,10 +49,6 @@ public final class ReusableViewProvider {
         TableView()
     }
 
-    private let mathImageViewPool: ViewBox<MathImageView> = .init {
-        MathImageView()
-    }
-
     public init() {}
 
     public func releaseAll() {
@@ -61,10 +57,6 @@ public final class ReusableViewProvider {
         }
         while let tableView = tableViewPool.objects.popLast() {
             tableView.removeFromSuperview()
-        }
-        while let mathImageView = mathImageViewPool.objects.popLast() {
-            mathImageView.removeFromSuperview()
-            mathImageView.reset()
         }
     }
 
@@ -84,15 +76,5 @@ public final class ReusableViewProvider {
     func releaseTableView(_ tableView: TableView) {
         tableView.removeFromSuperview()
         tableViewPool.release(tableView)
-    }
-
-    func acquireMathImageView() -> MathImageView {
-        mathImageViewPool.acquire()
-    }
-
-    func releaseMathImageView(_ mathImageView: MathImageView) {
-        mathImageView.removeFromSuperview()
-        mathImageView.reset()
-        mathImageViewPool.release(mathImageView)
     }
 }
