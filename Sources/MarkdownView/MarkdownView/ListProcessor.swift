@@ -13,6 +13,7 @@ import UIKit
 final class ListProcessor {
     private let theme: MarkdownTheme
     private let listIndent: CGFloat
+    private let context: MarkdownTextView.PreprocessContent
     private let viewProvider: ReusableViewProvider
     private let bulletDrawing: TextBuilder.BulletDrawingCallback?
     private let numberedDrawing: TextBuilder.NumberedDrawingCallback?
@@ -22,6 +23,7 @@ final class ListProcessor {
         theme: MarkdownTheme,
         listIndent: CGFloat,
         viewProvider: ReusableViewProvider,
+        context: MarkdownTextView.PreprocessContent,
         bulletDrawing: TextBuilder.BulletDrawingCallback?,
         numberedDrawing: TextBuilder.NumberedDrawingCallback?,
         checkboxDrawing: TextBuilder.CheckboxDrawingCallback?
@@ -29,27 +31,28 @@ final class ListProcessor {
         self.theme = theme
         self.listIndent = listIndent
         self.viewProvider = viewProvider
+        self.context = context
         self.bulletDrawing = bulletDrawing
         self.numberedDrawing = numberedDrawing
         self.checkboxDrawing = checkboxDrawing
     }
 
-    func processBulletedList(items: [RawListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processBulletedList(items: [RawListItem]) -> NSAttributedString {
         let items = flatList(.bulleted(items), currentDepth: 0)
-        return renderListItems(items, renderedContext: renderedContext)
+        return renderListItems(items)
     }
 
-    func processNumberedList(startAt index: Int, items: [RawListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processNumberedList(startAt index: Int, items: [RawListItem]) -> NSAttributedString {
         let items = flatList(.numbered(index, items), currentDepth: 0)
-        return renderListItems(items, renderedContext: renderedContext)
+        return renderListItems(items)
     }
 
-    func processTaskList(items: [RawTaskListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processTaskList(items: [RawTaskListItem]) -> NSAttributedString {
         let items = flatList(.task(items), currentDepth: 0)
-        return renderListItems(items, renderedContext: renderedContext)
+        return renderListItems(items)
     }
 
-    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false) -> NSAttributedString {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
@@ -73,7 +76,7 @@ final class ListProcessor {
                 }
             }),
         ]))
-        string.append(item.paragraph.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
+        string.append(item.paragraph.render(theme: theme, context: context, viewProvider: viewProvider))
 
         string.addAttributes(
             [.paragraphStyle: paragraphStyle],
@@ -83,10 +86,10 @@ final class ListProcessor {
         return string
     }
 
-    private func renderListItems(_ items: [ListItem], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    private func renderListItems(_ items: [ListItem]) -> NSAttributedString {
         let result = NSMutableAttributedString()
         for (index, item) in items.enumerated() {
-            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1, renderedContext: renderedContext)
+            let rendered = renderListItem(item, reduceLineSpacing: index != items.count - 1)
             result.append(rendered)
         }
         return result

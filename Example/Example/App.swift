@@ -74,10 +74,8 @@ final class ContentController: UIViewController {
 
         let parser = MarkdownParser()
         let result = parser.parse(testDocument)
-        let theme = markdownTextView.theme
-        let rendered = result.render(theme: theme)
         let date = Date()
-        markdownTextView.setMarkdown(.init(blocks: result.document, rendered: rendered))
+        markdownTextView.setMarkdown(.init(parserResult: result, theme: .default))
         view.setNeedsLayout()
         view.layoutIfNeeded()
         let time = Date().timeIntervalSince(date)
@@ -94,11 +92,10 @@ final class ContentController: UIViewController {
                 autoreleasepool {
                     let parser = MarkdownParser()
                     let result = parser.parse(streamDocument)
-                    let theme = markdownTextView.theme
-                    let rendered = result.render(theme: theme)
+                    let content = MarkdownTextView.PreprocessContent(parserResult: result, theme: .default)
                     DispatchQueue.main.asyncAndWait {
                         let date = Date()
-                        markdownTextView.setMarkdown(.init(blocks: result.document, rendered: rendered))
+                        markdownTextView.setMarkdown(content)
                         self.view.setNeedsLayout()
                         self.view.layoutIfNeeded()
                         let time = Date().timeIntervalSince(date)

@@ -12,32 +12,17 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessContent, viewProvider: ReusableViewProvider) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
-            result.append(node.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider))
+            result.append(node.render(theme: theme, context: context, viewProvider: viewProvider))
         }
         return result
     }
 }
 
 extension MarkdownInlineNode {
-    func placeImage(theme _: MarkdownTheme, image: UIImage, representText _: String) -> NSAttributedString {
-        let attachment: LTXAttachment = .init()
-        attachment.size = image.size
-
-        return NSAttributedString(
-            string: LTXReplacementText,
-            attributes: [
-                LTXAttachmentAttributeName: attachment,
-                LTXLineDrawingCallbackName: LTXLineDrawingAction(action: { _, _, _ in
-                }),
-                kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
-            ]
-        )
-    }
-
-    func render(theme: MarkdownTheme, renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) -> NSAttributedString {
+    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessContent, viewProvider: ReusableViewProvider) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):
@@ -78,7 +63,7 @@ extension MarkdownInlineNode {
             )
         case let .emphasis(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .underlineStyle: NSUnderlineStyle.thick.rawValue,
@@ -89,7 +74,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strong(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.font: theme.fonts.bold],
                 range: NSRange(location: 0, length: ans.length)
@@ -97,7 +82,7 @@ extension MarkdownInlineNode {
             return ans
         case let .strikethrough(children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [.strikethroughStyle: NSUnderlineStyle.thick.rawValue],
                 range: NSRange(location: 0, length: ans.length)
@@ -105,7 +90,7 @@ extension MarkdownInlineNode {
             return ans
         case let .link(destination, children):
             let ans = NSMutableAttributedString()
-            children.map { $0.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider) }.forEach { ans.append($0) }
+            children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .link: destination,
@@ -124,7 +109,7 @@ extension MarkdownInlineNode {
                 ]
             )
         case let .math(content, replacementIdentifier):
-            if let item = renderedContext[replacementIdentifier], let image = item.image {
+            if let item = context.rendered[replacementIdentifier], let image = item.image {
                 let drawingCallback = LTXLineDrawingAction { context, line, lineOrigin in
                     let glyphRuns = CTLineGetGlyphRuns(line) as NSArray
                     var runOffsetX: CGFloat = 0

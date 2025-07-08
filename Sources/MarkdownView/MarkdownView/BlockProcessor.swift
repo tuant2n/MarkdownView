@@ -13,6 +13,7 @@ import UIKit
 final class BlockProcessor {
     private let theme: MarkdownTheme
     private let viewProvider: ReusableViewProvider
+    private let context: MarkdownTextView.PreprocessContent
     private let thematicBreakDrawing: TextBuilder.DrawingCallback?
     private let codeDrawing: TextBuilder.DrawingCallback?
     private let tableDrawing: TextBuilder.DrawingCallback?
@@ -20,25 +21,27 @@ final class BlockProcessor {
     init(
         theme: MarkdownTheme,
         viewProvider: ReusableViewProvider,
+        context: MarkdownTextView.PreprocessContent,
         thematicBreakDrawing: TextBuilder.DrawingCallback?,
         codeDrawing: TextBuilder.DrawingCallback?,
         tableDrawing: TextBuilder.DrawingCallback?
     ) {
         self.theme = theme
         self.viewProvider = viewProvider
+        self.context = context
         self.thematicBreakDrawing = thematicBreakDrawing
         self.codeDrawing = codeDrawing
         self.tableDrawing = tableDrawing
     }
 
-    func processHeading(level _: Int, contents: [MarkdownInlineNode], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processHeading(level _: Int, contents: [MarkdownInlineNode]) -> NSAttributedString {
         let font: UIFont = theme.fonts.title
 
         return withParagraph { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.paragraphSpacingBefore = 16
         } content: {
-            let string = contents.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
+            let string = contents.render(theme: theme, context: context, viewProvider: viewProvider)
             string.addAttributes(
                 [.font: font],
                 range: NSRange(location: 0, length: string.length)
@@ -47,12 +50,12 @@ final class BlockProcessor {
         }
     }
 
-    func processParagraph(contents: [MarkdownInlineNode], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processParagraph(contents: [MarkdownInlineNode]) -> NSAttributedString {
         withParagraph { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.lineSpacing = 4
         } content: {
-            contents.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
+            contents.render(theme: theme, context: context, viewProvider: viewProvider)
         }
     }
 
@@ -69,7 +72,11 @@ final class BlockProcessor {
         }
     }
 
-    func processCodeBlock(language: String?, content: String) -> NSAttributedString {
+    func processCodeBlock(
+        language: String?,
+        content: String,
+        highlightMap: CodeHighlighter.HighlightMap
+    ) -> NSAttributedString {
         let content = content.deletingSuffix(of: .whitespacesAndNewlines)
 
         return withParagraph { paragraph in
@@ -79,6 +86,7 @@ final class BlockProcessor {
             let codeView = viewProvider.acquireCodeView()
             codeView.theme = theme
             codeView.language = language ?? ""
+            codeView.highlightMap = highlightMap
             codeView.content = content
             let codeDrawing = self.codeDrawing
             return .init(string: LTXReplacementText, attributes: [
@@ -100,11 +108,11 @@ final class BlockProcessor {
         return result
     }
 
-    func processTable(rows: [RawTableRow], renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    func processTable(rows: [RawTableRow]) -> NSAttributedString {
         let tableView = viewProvider.acquireTableView()
         let contents = rows.map {
             $0.cells.map { rawCell in
-                rawCell.content.render(theme: theme, renderedContext: renderedContext, viewProvider: viewProvider)
+                rawCell.content.render(theme: theme, context: context, viewProvider: viewProvider)
             }
         }
         tableView.setContents(contents)

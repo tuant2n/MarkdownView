@@ -17,16 +17,15 @@ public extension MarkdownBlockNode {
     var children: [MarkdownBlockNode] {
         switch self {
         case let .blockquote(children):
-            return children
+            children
         case let .bulletedList(_, items):
-            return items.map(\.children).flatMap(\.self)
+            items.map(\.children).flatMap(\.self)
         case let .numberedList(_, _, items):
-            return items.map(\.children).flatMap(\.self)
+            items.map(\.children).flatMap(\.self)
         case let .taskList(_, items):
-            return items.map(\.children).flatMap(\.self)
+            items.map(\.children).flatMap(\.self)
         default:
-            print("WARNING: children is not supported for \(self)")
-            return []
+            []
         }
     }
 

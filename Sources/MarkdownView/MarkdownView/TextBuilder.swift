@@ -11,9 +11,9 @@ import UIKit
 final class TextBuilder {
     private let nodes: [MarkdownBlockNode]
     private let viewProvider: ReusableViewProvider
-    private var theme: MarkdownTheme
+    private var theme: MarkdownTheme = .default
     private let text: NSMutableAttributedString = .init()
-    private let renderedContext: RenderedTextContent.Map
+    private let context: MarkdownTextView.PreprocessContent
 
     private var bulletDrawing: BulletDrawingCallback?
     private var numberedDrawing: NumberedDrawingCallback?
@@ -24,11 +24,14 @@ final class TextBuilder {
 
     var listIndent: CGFloat = 20
 
-    init(nodes: [MarkdownBlockNode], renderedContext: RenderedTextContent.Map, viewProvider: ReusableViewProvider) {
+    init(
+        nodes: [MarkdownBlockNode],
+        context: MarkdownTextView.PreprocessContent,
+        viewProvider: ReusableViewProvider,
+    ) {
         self.nodes = nodes
-        self.renderedContext = renderedContext
+        self.context = context
         self.viewProvider = viewProvider
-        theme = .default
     }
 
     func withTheme(_ theme: MarkdownTheme) -> TextBuilder {
@@ -68,7 +71,7 @@ final class TextBuilder {
 
     func build() -> NSAttributedString {
         for node in nodes {
-            text.append(processBlock(node, renderedContext: renderedContext))
+            text.append(processBlock(node, context: context))
         }
         return text
     }
@@ -77,10 +80,14 @@ final class TextBuilder {
 // MARK: - Block Processing
 
 extension TextBuilder {
-    private func processBlock(_ node: MarkdownBlockNode, renderedContext: RenderedTextContent.Map) -> NSAttributedString {
+    private func processBlock(
+        _ node: MarkdownBlockNode,
+        context: MarkdownTextView.PreprocessContent
+    ) -> NSAttributedString {
         let blockProcessor = BlockProcessor(
             theme: theme,
             viewProvider: viewProvider,
+            context: context,
             thematicBreakDrawing: thematicBreakDrawing,
             codeDrawing: codeDrawing,
             tableDrawing: tableDrawing
@@ -90,6 +97,7 @@ extension TextBuilder {
             theme: theme,
             listIndent: listIndent,
             viewProvider: viewProvider,
+            context: context,
             bulletDrawing: bulletDrawing,
             numberedDrawing: numberedDrawing,
             checkboxDrawing: checkboxDrawing
@@ -97,25 +105,31 @@ extension TextBuilder {
 
         switch node {
         case let .heading(level, contents):
-            return blockProcessor.processHeading(level: level, contents: contents, renderedContext: renderedContext)
+            return blockProcessor.processHeading(level: level, contents: contents)
         case let .paragraph(contents):
-            return blockProcessor.processParagraph(contents: contents, renderedContext: renderedContext)
+            return blockProcessor.processParagraph(contents: contents)
         case let .bulletedList(_, items):
-            return listProcessor.processBulletedList(items: items, renderedContext: renderedContext)
+            return listProcessor.processBulletedList(items: items)
         case let .numberedList(_, index, items):
-            return listProcessor.processNumberedList(startAt: index, items: items, renderedContext: renderedContext)
+            return listProcessor.processNumberedList(startAt: index, items: items)
         case let .taskList(_, items):
-            return listProcessor.processTaskList(items: items, renderedContext: renderedContext)
+            return listProcessor.processTaskList(items: items)
         case .thematicBreak:
             return blockProcessor.processThematicBreak()
         case let .codeBlock(language, content):
-            return blockProcessor.processCodeBlock(language: language, content: content)
+            let highlightKey = CodeHighlighter.current.key(for: content, language: language)
+            let highlightMap = context.highlightMaps[highlightKey]
+            return blockProcessor.processCodeBlock(
+                language: language,
+                content: content,
+                highlightMap: highlightMap ?? .init()
+            )
         case let .blockquote(children):
             return blockProcessor.processBlockquote(children) {
-                self.processBlock($0, renderedContext: renderedContext)
+                self.processBlock($0, context: context)
             }
         case let .table(_, rows):
-            return blockProcessor.processTable(rows: rows, renderedContext: renderedContext)
+            return blockProcessor.processTable(rows: rows)
         }
     }
 }

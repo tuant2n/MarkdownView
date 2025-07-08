@@ -9,32 +9,23 @@ import UIKit
 final class CodeView: UIView {
     // MARK: - CONTENT
 
-    // only update on content will trigger update to attribute text
-    // get theme and language ready in first place
-    // please strictly follow the order
-
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
-            rotateTaskIdentifier()
         }
     }
 
     var language: String = "" {
         didSet {
             languageLabel.text = language
-            rotateTaskIdentifier()
         }
     }
 
+    var highlightMap: CodeHighlighter.HighlightMap = .init()
+
     var content: String = "" {
         didSet {
-            if content.isEmpty {
-                textView.attributedText = .init()
-                rotateTaskIdentifier()
-            } else {
-                performHighlight(with: content)
-            }
+            updateHighlightedContent(calculatedAttributes: highlightMap)
         }
     }
 
@@ -101,52 +92,6 @@ final class CodeView: UIView {
     @objc func handlePreview(_: UIButton) {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         previewAction?(language, textView.attributedText)
-    }
-
-    @discardableResult
-    private func rotateTaskIdentifier() -> UUID {
-        if let currentTask = currentTaskIdentifier {
-            DispatchQueue.global().async {
-                CodeHighlighter.current.cancelHighlight(taskIdentifier: currentTask)
-            }
-        }
-        let newTaskIdentifier = UUID()
-        currentTaskIdentifier = newTaskIdentifier
-        return newTaskIdentifier
-    }
-
-    private func performHighlight(with code: String) {
-        let request = CodeHighlighter.HighlightRequest(
-            taskIdentifier: rotateTaskIdentifier(),
-            callerIdentifier: callerIdentifier,
-            language: language,
-            content: code,
-            theme: theme
-        )
-
-        CodeHighlighter.current.beginHighlight(request: request) { [weak self] result in
-            guard let self else { return }
-            if Thread.isMainThread {
-                handleHighlightResult(result)
-            } else {
-                DispatchQueue.main.asyncAndWait {
-                    self.handleHighlightResult(result)
-                }
-            }
-        }
-    }
-
-    private func handleHighlightResult(_ result: CodeHighlighter.HighlightResult) {
-        switch result {
-        case let .cache(task, map):
-            guard task == currentTaskIdentifier else { return }
-            updateHighlightedContent(calculatedAttributes: map)
-
-        case let .highlighted(task, map):
-            guard task == currentTaskIdentifier else { return }
-            updateHighlightedContent(calculatedAttributes: map)
-            currentTaskIdentifier = nil
-        }
     }
 
     private func updateHighlightedContent(calculatedAttributes: CodeHighlighter.HighlightMap) {
