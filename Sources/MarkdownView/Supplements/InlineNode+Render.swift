@@ -161,7 +161,6 @@ extension MarkdownInlineNode {
                     ]
                 )
             } else {
-                assertionFailure()
                 return NSAttributedString(
                     string: content,
                     attributes: [
