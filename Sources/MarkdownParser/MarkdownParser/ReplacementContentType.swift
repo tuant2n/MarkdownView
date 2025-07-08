@@ -21,8 +21,10 @@ public extension MarkdownParser {
         replacementText(for: contentType.rawValue, identifier: identifier)
     }
 
-    static func typeForReplacementText(_ text: String) -> ReplacementContentType {
-        guard text.hasPrefix("`"), text.hasSuffix("`") else { return .unknown }
+    static func typeForReplacementText(_ text: String, allowEnclosingCharacterMismatch: Bool = true) -> ReplacementContentType {
+        if !allowEnclosingCharacterMismatch {
+            guard text.hasPrefix("`"), text.hasSuffix("`") else { return .unknown }
+        }
         let text = text.trimmingCharacters(in: .init(charactersIn: "`"))
         guard let comps = URLComponents(string: text) else {
             return .unknown
@@ -35,7 +37,10 @@ public extension MarkdownParser {
         return .unknown
     }
 
-    static func identifierForReplacementText(_ text: String) -> String? {
+    static func identifierForReplacementText(_ text: String, allowEnclosingCharacterMismatch: Bool = true) -> String? {
+        if !allowEnclosingCharacterMismatch {
+            guard text.hasPrefix("`"), text.hasSuffix("`") else { return nil }
+        }
         let text = text.trimmingCharacters(in: .init(charactersIn: "`"))
         assert(text.hasPrefix("md://content?type="))
         guard let comps = URLComponents(string: text) else {

@@ -168,7 +168,7 @@ extension MarkdownParser {
         for node in nodes {
             switch node {
             case let .text(text):
-                result.append(contentsOf: processInlineMathInTextWithRegExMather(text, mathContext: mathContext))
+                result.append(contentsOf: processInlineMath(text, mathContext: mathContext))
             case let .code(content):
                 if Self.typeForReplacementText(content) == .math,
                    let identifier = Self.identifierForReplacementText(content),
@@ -194,9 +194,13 @@ extension MarkdownParser {
         return result
     }
 
-    private func processInlineMathInTextWithContextMather(_: String, mathContext _: MathContext) -> [MarkdownInlineNode] {
-        []
+    private func processInlineMath(_ text: String, mathContext: MathContext) -> [MarkdownInlineNode] {
+        let blocks = processInlineMathInTextWithRegExMather(text, mathContext: mathContext).map { [$0] }
+        return blocks.flatMap(\.self)
     }
+
+    // thought that adding ` to enclosing replacement string is not robust
+    // but it works on my machine
 
     private func processInlineMathInTextWithRegExMather(_ text: String, mathContext: MathContext) -> [MarkdownInlineNode] {
         guard let regex = mathPatternWithinBlock else { return [.text(text)] }
