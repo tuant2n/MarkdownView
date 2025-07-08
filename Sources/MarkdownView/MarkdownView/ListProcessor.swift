@@ -52,9 +52,9 @@ final class ListProcessor {
         return renderListItems(items)
     }
 
-    private func listIndentMultiple(for count: Int) -> Int {
+    private func listIndentMultiple(for count: Int) -> CGFloat {
         assert(count >= 0)
-        if count <= 9 { return 1 }
+        if count <= 9 { return 1.5 }
         if count <= 99 { return 2 }
         if count <= 999 { return 3 }
         if count <= 9999 { return 4 }
@@ -67,7 +67,8 @@ final class ListProcessor {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
-        let indent = CGFloat(item.depth + 1) * listIndent * CGFloat(listIndentMultiple(for: total))
+        var indent = CGFloat(item.depth + 1) * listIndent
+        if item.ordered { indent *= listIndentMultiple(for: total) }
         paragraphStyle.firstLineHeadIndent = indent
         paragraphStyle.headIndent = indent
 
@@ -79,11 +80,11 @@ final class ListProcessor {
             .font: theme.fonts.body,
             .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
                 if item.ordered {
-                    numberedDrawing?(context, line, lineOrigin, item.index, indent)
+                    numberedDrawing?(context, line, lineOrigin, item.index, indent, String(total).count)
                 } else if item.isTask {
-                    checkboxDrawing?(context, line, lineOrigin, item.isDone, indent)
+                    checkboxDrawing?(context, line, lineOrigin, item.isDone)
                 } else {
-                    bulletDrawing?(context, line, lineOrigin, item.depth, indent)
+                    bulletDrawing?(context, line, lineOrigin, item.depth)
                 }
             }),
         ]))

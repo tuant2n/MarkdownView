@@ -12,6 +12,18 @@ let testDocument = ###"""
 
 好的，以下是32种不同的编程语言的“Hello, World!”代码，每种语言尽量保持在一行：
 
+- Enim irure amet cupidatat ut Lorem quis nisi qui aliqua cillum dolore anim sit.
+    - Pariatur commodo amet adipisicing consectetur est amet eu cillum cillum. Ea aute nulla elit nulla aliqua dolore esse commodo ut enim eiusmod fugiat qui. Ullamco in eu do irure minim amet laboris do magna nisi. Do minim anim laborum adipisicing nisi amet sint tempor reprehenderit irure sunt duis adipisicing fugiat eu. Consequat ut excepteur tempor nostrud irure deserunt sit aute laborum et nisi voluptate et. Lorem labore duis ea tempor duis. Occaecat in ex amet incididunt in ipsum. Proident non nostrud dolor fugiat exercitation adipisicing consequat ipsum anim nisi sint cillum.
+- Cupidatat commodo eu dolore sint dolore.
+- Eiusmod cillum aute ad laborum Lorem dolor cupidatat occaecat.
+    - Velit adipisicing exercitation nisi do quis duis sit dolore ullamco excepteur tempor exercitation amet dolor.
+
+1.  **Python:** `print("Hello, World!")`
+2.  **JavaScript:** `console.log("Hello, World!");`
+3.  **Java:** `class A{public static void main(String[] a){System.out.println("Hello, World!");}}`
+
+---
+
 1.  **Python:** `print("Hello, World!")`
 2.  **JavaScript:** `console.log("Hello, World!");`
 3.  **Java:** `class A{public static void main(String[] a){System.out.println("Hello, World!");}}`
