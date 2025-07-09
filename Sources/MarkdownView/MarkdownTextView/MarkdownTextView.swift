@@ -16,7 +16,7 @@ public final class MarkdownTextView: UIView {
     public internal(set) var document: PreprocessContent = .init()
     public let textView: LTXLabel = .init()
     public var theme: MarkdownTheme = .default {
-        didSet { setMarkdown(document) } // update it
+        didSet { setMarkdown(document, updateNow: true) } // update it
     }
 
     public internal(set) weak var trackedScrollView: UIScrollView? // for selection updating
@@ -57,18 +57,18 @@ public final class MarkdownTextView: UIView {
         return textView.intrinsicContentSize
     }
 
-    public func setMarkdown(_ content: PreprocessContent) {
-        if Thread.isMainThread {
+    public func setMarkdown(_ content: PreprocessContent, updateNow: Bool) {
+        if updateNow {
+            resetCombine()
             contentSubject.send(content)
+            setupCombine()
         } else {
-            DispatchQueue.main.asyncAndWait {
-                self.setMarkdown(content)
-            }
+            contentSubject.send(content)
         }
     }
 
     public func reset() {
         assert(Thread.isMainThread)
-        contentSubject.send(.init())
+        setMarkdown(.init(), updateNow: false)
     }
 }

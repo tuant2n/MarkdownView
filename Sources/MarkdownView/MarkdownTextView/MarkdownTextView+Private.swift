@@ -10,7 +10,13 @@ import Foundation
 import Litext
 
 extension MarkdownTextView {
+    func resetCombine() {
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+    }
+
     func setupCombine() {
+        resetCombine()
         if let throttleInterval {
             contentSubject
                 .throttle(for: .seconds(throttleInterval), scheduler: DispatchQueue.main, latest: true)
