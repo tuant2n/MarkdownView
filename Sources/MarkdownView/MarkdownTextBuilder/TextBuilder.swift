@@ -69,11 +69,26 @@ final class TextBuilder {
         return self
     }
 
-    func build() -> NSAttributedString {
-        for node in nodes {
-            text.append(processBlock(node, context: context))
+    struct BuildResult {
+        let document: NSAttributedString
+        let subviews: [UIView]
+     }
+    
+    private var previouslyBuilt = false
+    func build() -> BuildResult {
+        assert(!previouslyBuilt, "TextBuilder can only be built once.")
+        previouslyBuilt = true
+        for node in nodes { text.append(processBlock(node, context: context)) }
+        text.fixAttributes(in: .init(location: 0, length: text.length))
+        var subviewCollector = [UIView]()
+        text.enumerateAttribute(
+            .contextView,
+            in: .init(location: 0, length: text.length),
+            options: [.longestEffectiveRangeNotRequired]
+        ) { view, _, _ in
+            if let view = view as? UIView { subviewCollector.append(view) }
         }
-        return text
+        return .init(document: text, subviews: [])
     }
 }
 

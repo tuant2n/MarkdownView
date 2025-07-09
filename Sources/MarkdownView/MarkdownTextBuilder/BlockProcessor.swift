@@ -37,7 +37,7 @@ final class BlockProcessor {
     func processHeading(level _: Int, contents: [MarkdownInlineNode]) -> NSAttributedString {
         let font: UIFont = theme.fonts.title
 
-        return withParagraph { paragraph in
+        return buildWithParagraphSync { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.paragraphSpacingBefore = 16
         } content: {
@@ -51,7 +51,7 @@ final class BlockProcessor {
     }
 
     func processParagraph(contents: [MarkdownInlineNode]) -> NSAttributedString {
-        withParagraph { paragraph in
+        buildWithParagraphSync { paragraph in
             paragraph.paragraphSpacing = 16
             paragraph.lineSpacing = 4
         } content: {
@@ -60,7 +60,7 @@ final class BlockProcessor {
     }
 
     func processThematicBreak() -> NSAttributedString {
-        withParagraph {
+        buildWithParagraphSync {
             let drawingCallback = self.thematicBreakDrawing
             return .init(string: LTXReplacementText, attributes: [
                 .font: theme.fonts.body,
@@ -78,23 +78,20 @@ final class BlockProcessor {
         highlightMap: CodeHighlighter.HighlightMap
     ) -> NSAttributedString {
         let content = content.deletingSuffix(of: .whitespacesAndNewlines)
-
-        return withParagraph { paragraph in
+        let codeView = viewProvider.acquireCodeView()
+        codeView.theme = theme
+        codeView.language = language ?? ""
+        codeView.highlightMap = highlightMap
+        codeView.content = content
+        let drawer = self.codeDrawing!
+        return buildWithParagraphSync { paragraph in
             let height = CodeView.intrinsicHeight(for: content, theme: theme)
             paragraph.minimumLineHeight = height
         } content: {
-            let codeView = viewProvider.acquireCodeView()
-            codeView.theme = theme
-            codeView.language = language ?? ""
-            codeView.highlightMap = highlightMap
-            codeView.content = content
-            let codeDrawing = self.codeDrawing
-            return .init(string: LTXReplacementText, attributes: [
+            .init(string: LTXReplacementText, attributes: [
                 .font: theme.fonts.body,
                 .ltxAttachment: LTXAttachment.hold(attrString: .init(string: content + "\n")),
-                .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
-                    codeDrawing?(context, line, lineOrigin)
-                }),
+                .ltxLineDrawingCallback: LTXLineDrawingAction { drawer($0, $1, $2) },
                 .contextView: codeView,
             ])
         }
@@ -115,20 +112,20 @@ final class BlockProcessor {
                 rawCell.content.render(theme: theme, context: context, viewProvider: viewProvider)
             }
         }
+        let allContent = contents
+            .map { $0.map(\.string).joined(separator: "\t") }
+            .joined(separator: "\n")
+        let representedText = NSAttributedString(string: allContent + "\n")
         tableView.setContents(contents)
-        return withParagraph { paragraph in
+        let drawer = self.tableDrawing!
+
+        return buildWithParagraphSync { paragraph in
             paragraph.minimumLineHeight = tableView.intrinsicContentHeight
         } content: {
-            let drawingCallback = self.tableDrawing
             return .init(string: LTXReplacementText, attributes: [
                 .font: theme.fonts.body,
-                .ltxAttachment: LTXAttachment.hold(attrString: .init(string: contents.map {
-                    $0.map(\.string).joined(separator: "\t")
-                }.joined(separator: "\n") + "\n")),
-                .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
-                    tableView.setContents(contents)
-                    drawingCallback?(context, line, lineOrigin)
-                }),
+                .ltxAttachment: LTXAttachment.hold(attrString: representedText),
+                .ltxLineDrawingCallback: LTXLineDrawingAction { drawer($0, $1, $2) },
                 .contextView: tableView,
             ])
         }
@@ -138,7 +135,7 @@ final class BlockProcessor {
 // MARK: - Paragraph Helper
 
 extension BlockProcessor {
-    private func withParagraph(
+    private func buildWithParagraphSync(
         modifier: (NSMutableParagraphStyle) -> Void = { _ in },
         content: () -> NSMutableAttributedString
     ) -> NSMutableAttributedString {
