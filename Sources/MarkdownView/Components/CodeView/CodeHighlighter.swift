@@ -15,7 +15,7 @@ private let kPrefixLength = 8
 public final class CodeHighlighter {
     public typealias HighlightMap = [NSRange: UIColor]
 
-    public private(set) var renderCache = LRUCache<Int, HighlightMap>()
+    public private(set) var renderCache = LRUCache<Int, HighlightMap>(countLimit: 256)
 
     private init() {}
     public static let current = CodeHighlighter()
