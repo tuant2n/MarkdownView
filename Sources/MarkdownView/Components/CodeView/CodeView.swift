@@ -30,6 +30,7 @@ final class CodeView: UIView {
 
     var content: String = "" {
         didSet {
+            guard oldValue != content else { return }
             textView.attributedText = highlightMap.apply(to: content, with: theme)
         }
     }

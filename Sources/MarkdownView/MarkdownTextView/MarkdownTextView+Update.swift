@@ -13,6 +13,9 @@ extension MarkdownTextView {
     func updateTextExecute() {
         assert(Thread.isMainThread)
 
+        viewProvider.lockPool()
+        defer { viewProvider.unlockPool() }
+        
         var pendingReleasedViews: Set<UIView> = .init()
         for view in contextViews {
             pendingReleasedViews.insert(view)
@@ -26,6 +29,8 @@ extension MarkdownTextView {
             }
             assertionFailure()
         }
+
+        viewProvider.reorderViews(matching: contextViews)
         contextViews.removeAll()
 
         let artifacts = TextBuilder.build(view: self)
