@@ -11,6 +11,7 @@ import UIKit
 extension NSAttributedString.Key {
     static let contextView: NSAttributedString.Key = .init("contextView")
     static let contextImage: NSAttributedString.Key = .init("contextImage")
+    static let contextIdentifier: NSAttributedString.Key = .init("contextIdentifier")
 }
 
 public final class MarkdownTextView: UIView {
@@ -33,13 +34,6 @@ public final class MarkdownTextView: UIView {
 
     private lazy var textView: LTXLabel = .init()
     public var theme: MarkdownTheme = .default
-
-    private var drawingViewsDirtyMarks: [UIView: Bool] = [:]
-    private var isDrawingViewsReady: Bool = false
-
-    deinit {
-        releaseDrawingViews()
-    }
 
     public init() {
         viewProvider = .init()
@@ -67,24 +61,6 @@ public final class MarkdownTextView: UIView {
         textView.frame = bounds
     }
 
-    override public func draw(_ rect: CGRect) {
-        super.draw(rect)
-
-        if isDrawingViewsReady {
-            // Removes unused drawing views from the superview.
-            var needsRemove: Set<UIView> = .init()
-            for (drawingView, isDirty) in drawingViewsDirtyMarks {
-                if isDirty, drawingView.superview == self {
-                    needsRemove.insert(drawingView)
-                }
-            }
-            for view in needsRemove {
-                view.removeFromSuperview()
-                drawingViewsDirtyMarks.removeValue(forKey: view)
-            }
-        }
-    }
-
     public func boundingSize(for width: CGFloat) -> CGSize {
         textView.preferredMaxLayoutWidth = width
         return textView.intrinsicContentSize
@@ -105,32 +81,14 @@ public final class MarkdownTextView: UIView {
         viewProvider.releaseAll()
         document = .init()
         attributedText = nil
-        drawingViewsDirtyMarks.removeAll()
-        isDrawingViewsReady = false
         subviews.forEach { $0.removeFromSuperview() }
         configureSubviews()
     }
 }
 
 extension MarkdownTextView {
-    private func releaseDrawingViews() {
-        for view in drawingViewsDirtyMarks.keys {
-            if let codeView = view as? CodeView {
-                viewProvider.releaseCodeView(codeView)
-            }
-            if let tableView = view as? TableView {
-                viewProvider.releaseTableView(tableView)
-            }
-        }
-    }
-
     private func updateTextExecute() {
-        releaseDrawingViews()
-        // Marks all drawing views as dirty.
-        for view in drawingViewsDirtyMarks.keys {
-            drawingViewsDirtyMarks[view] = true
-        }
-
+        @inline(__always)
         func lineBoundingBox(_ line: CTLine, lineOrigin: CGPoint) -> CGRect {
             var ascent: CGFloat = 0
             var descent: CGFloat = 0
@@ -220,7 +178,6 @@ extension MarkdownTextView {
                 let attributes = firstRun.attributes
                 guard let codeView = attributes[.contextView] as? CodeView else { return }
 
-                drawingViewsDirtyMarks[codeView] = false
                 if codeView.superview != self { addSubview(codeView) }
                 let intrinsicContentSize = codeView.intrinsicContentSize
                 let lineBoundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
@@ -229,8 +186,6 @@ extension MarkdownTextView {
                     size: .init(width: bounds.width, height: intrinsicContentSize.height)
                 )
                 codeView.previewAction = codePreviewHandler
-
-                isDrawingViewsReady = true
             }
             .withTableDrawing { [weak self] _, line, lineOrigin in
                 guard let self else { return }
@@ -238,7 +193,6 @@ extension MarkdownTextView {
                 let attributes = firstRun.attributes
                 guard let tableView = attributes[.contextView] as? TableView else { return }
 
-                drawingViewsDirtyMarks[tableView] = false
                 if tableView.superview != self { addSubview(tableView) }
                 let lineBoundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
                 let intrinsicContentSize = tableView.intrinsicContentSize
@@ -248,8 +202,6 @@ extension MarkdownTextView {
                     width: bounds.width,
                     height: intrinsicContentSize.height
                 )
-
-                isDrawingViewsReady = true
             }
             .build()
         attributedText = renderText

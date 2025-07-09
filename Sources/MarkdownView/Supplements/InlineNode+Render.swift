@@ -118,13 +118,23 @@ extension MarkdownInlineNode {
             )
         case let .math(content, replacementIdentifier):
             if let item = context.rendered[replacementIdentifier], let image = item.image {
+                var imageSize = image.size
+                let lineHeight = theme.fonts.body.lineHeight
+                if imageSize.height > lineHeight {
+                    // scale down
+                    let aspectRatio = imageSize.width / imageSize.height
+                    let scaledHeight = lineHeight
+                    let scaledWidth = scaledHeight * aspectRatio
+                    imageSize = CGSize(width: scaledWidth, height: scaledHeight)
+                }
+
                 let drawingCallback = LTXLineDrawingAction { context, line, lineOrigin in
                     let glyphRuns = CTLineGetGlyphRuns(line) as NSArray
                     var runOffsetX: CGFloat = 0
                     for i in 0 ..< glyphRuns.count {
                         let run = glyphRuns[i] as! CTRun
                         let attributes = CTRunGetAttributes(run) as! [NSAttributedString.Key: Any]
-                        if attributes[.contextImage] as? UIImage == image {
+                        if attributes[.contextIdentifier] as? String == replacementIdentifier {
                             break
                         }
                         runOffsetX += CTRunGetTypographicBounds(run, CFRange(location: 0, length: 0), nil, nil, nil)
@@ -134,10 +144,9 @@ extension MarkdownInlineNode {
                     var descent: CGFloat = 0
                     CTLineGetTypographicBounds(line, &ascent, &descent, nil)
 
-                    let imageSize = image.size
                     let rect = CGRect(
                         x: lineOrigin.x + runOffsetX,
-                        y: lineOrigin.y,
+                        y: lineOrigin.y - descent,
                         width: imageSize.width,
                         height: imageSize.height
                     )
@@ -150,14 +159,14 @@ extension MarkdownInlineNode {
                     context.restoreGState()
                 }
                 let attachment = LTXAttachment.hold(attrString: .init(string: content))
-                attachment.size = image.size
+                attachment.size = imageSize
                 return NSAttributedString(
                     string: LTXReplacementText,
                     attributes: [
                         LTXAttachmentAttributeName: attachment,
                         LTXLineDrawingCallbackName: drawingCallback,
                         kCTRunDelegateAttributeName as NSAttributedString.Key: attachment.runDelegate,
-                        .contextImage: image,
+                        .contextIdentifier: replacementIdentifier,
                     ]
                 )
             } else {
