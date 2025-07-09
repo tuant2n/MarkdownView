@@ -36,5 +36,7 @@ extension MarkdownTextView {
         // there might be a large of unknown empty whitespace inside the table
         // thus we hereby call the autoreleasepool to avoid large memory consumption
         autoreleasepool { updateTextExecute() }
+
+        layoutIfNeeded()
     }
 }

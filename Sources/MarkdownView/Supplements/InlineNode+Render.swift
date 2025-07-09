@@ -48,14 +48,8 @@ extension MarkdownInlineNode {
                 .font: theme.fonts.codeInline,
                 .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
             ]
-            let spacingCharacter = NSAttributedString(string: " ", attributes: [
-                .font: UIFont.systemFont(ofSize: theme.fonts.codeInline.pointSize),
-                .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
-            ])
             let text = NSMutableAttributedString(string: string, attributes: [.foregroundColor: theme.colors.code])
             text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
-            text.insert(spacingCharacter, at: 0)
-            text.append(spacingCharacter)
             return text
         case let .emphasis(children):
             let ans = NSMutableAttributedString()

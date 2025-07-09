@@ -75,7 +75,7 @@ final class ContentController: UIViewController {
         let parser = MarkdownParser()
         let result = parser.parse(testDocument)
         let date = Date()
-        markdownTextView.setMarkdown(.init(parserResult: result, theme: .default), updateNow: true)
+        markdownTextView.setMarkdownManually(.init(parserResult: result, theme: .default))
         view.setNeedsLayout()
         view.layoutIfNeeded()
         let time = Date().timeIntervalSince(date)
@@ -95,7 +95,7 @@ final class ContentController: UIViewController {
                     let content = MarkdownTextView.PreprocessContent(parserResult: result, theme: .default)
                     DispatchQueue.main.asyncAndWait {
                         let date = Date()
-                        markdownTextView.setMarkdown(content, updateNow: false)
+                        markdownTextView.setMarkdown(content)
                         self.view.setNeedsLayout()
                         self.view.layoutIfNeeded()
                         let time = Date().timeIntervalSince(date)
