@@ -21,7 +21,7 @@ extension TextBuilder {
         let width = CTLineGetTypographicBounds(line, &ascent, &descent, nil)
         return .init(x: lineOrigin.x, y: lineOrigin.y - descent, width: width, height: ascent + descent)
     }
-    
+
     static func build(view: MarkdownTextView) -> BuildResult {
         let context: MarkdownTextView.PreprocessContent = view.document
         let theme: MarkdownTheme = view.theme

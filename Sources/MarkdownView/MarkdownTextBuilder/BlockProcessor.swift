@@ -76,15 +76,15 @@ final class BlockProcessor {
         language: String?,
         content: String,
         highlightMap: CodeHighlighter.HighlightMap
-    ) -> NSAttributedString {
+    ) -> (NSAttributedString, CodeView) {
         let content = content.deletingSuffix(of: .whitespacesAndNewlines)
         let codeView = viewProvider.acquireCodeView()
         codeView.theme = theme
         codeView.language = language ?? ""
         codeView.highlightMap = highlightMap
         codeView.content = content
-        let drawer = self.codeDrawing!
-        return buildWithParagraphSync { paragraph in
+        let drawer = codeDrawing!
+        let text = buildWithParagraphSync { paragraph in
             let height = CodeView.intrinsicHeight(for: content, theme: theme)
             paragraph.minimumLineHeight = height
         } content: {
@@ -95,6 +95,7 @@ final class BlockProcessor {
                 .contextView: codeView,
             ])
         }
+        return (text, codeView)
     }
 
     func processBlockquote(_ children: [MarkdownBlockNode], processor: (MarkdownBlockNode) -> NSAttributedString) -> NSAttributedString {
@@ -105,7 +106,7 @@ final class BlockProcessor {
         return result
     }
 
-    func processTable(rows: [RawTableRow]) -> NSAttributedString {
+    func processTable(rows: [RawTableRow]) -> (NSAttributedString, TableView) {
         let tableView = viewProvider.acquireTableView()
         let contents = rows.map {
             $0.cells.map { rawCell in
@@ -117,18 +118,19 @@ final class BlockProcessor {
             .joined(separator: "\n")
         let representedText = NSAttributedString(string: allContent + "\n")
         tableView.setContents(contents)
-        let drawer = self.tableDrawing!
+        let drawer = tableDrawing!
 
-        return buildWithParagraphSync { paragraph in
+        let text = buildWithParagraphSync { paragraph in
             paragraph.minimumLineHeight = tableView.intrinsicContentHeight
         } content: {
-            return .init(string: LTXReplacementText, attributes: [
+            .init(string: LTXReplacementText, attributes: [
                 .font: theme.fonts.body,
                 .ltxAttachment: LTXAttachment.hold(attrString: representedText),
                 .ltxLineDrawingCallback: LTXLineDrawingAction { drawer($0, $1, $2) },
                 .contextView: tableView,
             ])
         }
+        return (text, tableView)
     }
 }
 

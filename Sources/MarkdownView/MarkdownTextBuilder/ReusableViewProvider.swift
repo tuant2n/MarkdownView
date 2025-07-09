@@ -16,27 +16,25 @@ private class ObjectPool<T> {
 
     open func acquire() -> T {
         if let object = objects.popFirst() {
-            object
+            return object
         } else {
-            factory()
+            let object = factory()
+            return object
         }
     }
 
-    open func release(_ object: T) {
+    open func stash(_ object: T) {
         objects.append(object)
     }
 }
 
 private class ViewBox<T: UIView>: ObjectPool<T> {
     override func acquire() -> T {
-        while true {
-            let item = super.acquire()
-            return item
-        }
+        super.acquire()
     }
 
-    override func release(_ item: T) {
-        super.release(item)
+    override func stash(_ item: T) {
+        super.stash(item)
     }
 }
 
@@ -51,30 +49,24 @@ public final class ReusableViewProvider {
 
     public init() {}
 
-    public func releaseAll() {
-        while let codeView = codeViewPool.objects.popLast() {
-            codeView.removeFromSuperview()
-        }
-        while let tableView = tableViewPool.objects.popLast() {
-            tableView.removeFromSuperview()
-        }
+    func removeAll() {
+        codeViewPool.objects.removeAll()
+        tableViewPool.objects.removeAll()
     }
 
     func acquireCodeView() -> CodeView {
         codeViewPool.acquire()
     }
 
-    func releaseCodeView(_ codeView: CodeView) {
-        codeView.removeFromSuperview()
-        codeViewPool.release(codeView)
+    func stashCodeView(_ codeView: CodeView) {
+        codeViewPool.stash(codeView)
     }
 
     func acquireTableView() -> TableView {
         tableViewPool.acquire()
     }
 
-    func releaseTableView(_ tableView: TableView) {
-        tableView.removeFromSuperview()
-        tableViewPool.release(tableView)
+    func stashTableView(_ tableView: TableView) {
+        tableViewPool.stash(tableView)
     }
 }

@@ -72,23 +72,18 @@ final class TextBuilder {
     struct BuildResult {
         let document: NSAttributedString
         let subviews: [UIView]
-     }
-    
+    }
+
     private var previouslyBuilt = false
     func build() -> BuildResult {
         assert(!previouslyBuilt, "TextBuilder can only be built once.")
         previouslyBuilt = true
-        for node in nodes { text.append(processBlock(node, context: context)) }
-        text.fixAttributes(in: .init(location: 0, length: text.length))
         var subviewCollector = [UIView]()
-        text.enumerateAttribute(
-            .contextView,
-            in: .init(location: 0, length: text.length),
-            options: [.longestEffectiveRangeNotRequired]
-        ) { view, _, _ in
-            if let view = view as? UIView { subviewCollector.append(view) }
+        for node in nodes {
+            text.append(processBlock(node, context: context, subviews: &subviewCollector))
         }
-        return .init(document: text, subviews: [])
+        text.fixAttributes(in: .init(location: 0, length: text.length))
+        return .init(document: text, subviews: subviewCollector)
     }
 }
 
@@ -97,7 +92,8 @@ final class TextBuilder {
 extension TextBuilder {
     private func processBlock(
         _ node: MarkdownBlockNode,
-        context: MarkdownTextView.PreprocessContent
+        context: MarkdownTextView.PreprocessContent,
+        subviews: inout [UIView]
     ) -> NSAttributedString {
         let blockProcessor = BlockProcessor(
             theme: theme,
@@ -134,17 +130,21 @@ extension TextBuilder {
         case let .codeBlock(language, content):
             let highlightKey = CodeHighlighter.current.key(for: content, language: language)
             let highlightMap = context.highlightMaps[highlightKey]
-            return blockProcessor.processCodeBlock(
+            let result = blockProcessor.processCodeBlock(
                 language: language,
                 content: content,
                 highlightMap: highlightMap ?? .init()
             )
+            subviews.append(result.1)
+            return result.0
         case let .blockquote(children):
             return blockProcessor.processBlockquote(children) {
-                self.processBlock($0, context: context)
+                self.processBlock($0, context: context, subviews: &subviews)
             }
         case let .table(_, rows):
-            return blockProcessor.processTable(rows: rows)
+            let result = blockProcessor.processTable(rows: rows)
+            subviews.append(result.1)
+            return result.0
         }
     }
 }

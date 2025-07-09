@@ -40,16 +40,6 @@ public class LTXLabel: LTXPlatformView, Identifiable {
 
     public internal(set) var isInteractionInProgress = false
 
-    #if canImport(UIKit)
-
-    #elseif canImport(AppKit)
-        public var backgroundColor: PlatformColor = .clear {
-            didSet {
-                layer?.backgroundColor = backgroundColor.cgColor
-            }
-        }
-    #endif
-
     public weak var delegate: LTXLabelDelegate?
 
     // MARK: - Internal Properties
@@ -87,12 +77,27 @@ public class LTXLabel: LTXPlatformView, Identifiable {
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
-        commonInit()
+        registerNotificationCenterForSelectionDeduplicate()
+
+        backgroundColor = .clear
+        installContextMenuInteraction()
+        installTextPointerInteraction()
+
+        #if targetEnvironment(macCatalyst)
+        #else
+            clipsToBounds = false // for selection handle
+            selectionHandleStart.isHidden = true
+            selectionHandleStart.delegate = self
+            addSubview(selectionHandleStart)
+            selectionHandleEnd.isHidden = true
+            selectionHandleEnd.delegate = self
+            addSubview(selectionHandleEnd)
+        #endif
     }
 
-    public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        commonInit()
+    @available(*, unavailable)
+    public required init?(coder _: NSCoder) {
+        fatalError()
     }
 
     deinit {
@@ -103,52 +108,11 @@ public class LTXLabel: LTXPlatformView, Identifiable {
         NotificationCenter.default.removeObserver(self)
     }
 
-    private func commonInit() {
-        registerNotificationCenterForSelectionDeduplicate()
-
-        #if canImport(UIKit)
-            backgroundColor = .clear
-            installContextMenuInteraction()
-            installTextPointerInteraction()
-
-            #if targetEnvironment(macCatalyst)
-            #else
-                clipsToBounds = false // for selection handle
-                selectionHandleStart.isHidden = true
-                selectionHandleStart.delegate = self
-                addSubview(selectionHandleStart)
-                selectionHandleEnd.isHidden = true
-                selectionHandleEnd.delegate = self
-                addSubview(selectionHandleEnd)
-            #endif
-        #elseif canImport(AppKit)
-            wantsLayer = true
-            layer?.backgroundColor = .clear
-        #endif
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        clearSelection()
+        invalidateTextLayout()
     }
-
-    // MARK: - Platform Specific
-
-    #if !canImport(UIKit) && canImport(AppKit)
-        override public var isFlipped: Bool {
-            true
-        }
-    #endif
-
-    #if canImport(UIKit)
-        override public func didMoveToWindow() {
-            super.didMoveToWindow()
-            clearSelection()
-            invalidateTextLayout()
-        }
-
-    #elseif canImport(AppKit)
-        override public func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            clearSelection()
-            invalidateTextLayout()
-        }
-    #endif
 }
 
 extension LTXLabel {

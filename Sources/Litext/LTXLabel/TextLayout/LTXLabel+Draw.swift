@@ -11,13 +11,6 @@ public extension LTXLabel {
     override func draw(_: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
 
-        if flags.needsUpdateHighlightRegions {
-            textLayout?.updateHighlightRegions(with: context)
-            highlightRegions = textLayout?.highlightRegions ?? []
-            updateAttachmentViews()
-            flags.needsUpdateHighlightRegions = false
-        }
-
         textLayout?.draw(in: context)
     }
 }

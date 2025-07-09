@@ -56,6 +56,13 @@ public extension LTXLabel {
             updateSelectionLayer()
             setNeedsDisplay()
         }
+
+        if flags.needsUpdateHighlightRegions {
+            textLayout?.updateHighlightRegions()
+            highlightRegions = textLayout?.highlightRegions ?? []
+            updateAttachmentViews()
+            flags.needsUpdateHighlightRegions = false
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

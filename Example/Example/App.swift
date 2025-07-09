@@ -108,6 +108,7 @@ final class ContentController: UIViewController {
 
     @objc func resetMarkdown() {
         markdownTextView.reset()
+        view.setNeedsLayout()
     }
 
     override func viewWillLayoutSubviews() {
