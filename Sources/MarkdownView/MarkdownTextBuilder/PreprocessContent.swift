@@ -105,7 +105,7 @@ public extension MarkdownParser.ParseResult {
                 }
                 continue
             }
-            assertionFailure()
+            continue
         }
     }
 

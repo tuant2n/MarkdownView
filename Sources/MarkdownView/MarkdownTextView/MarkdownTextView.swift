@@ -28,7 +28,10 @@ public final class MarkdownTextView: UIView {
         didSet { setupCombine() }
     }
 
-    public init() {
+    let viewProvider: ReusableViewProvider
+
+    public init(viewProvider: ReusableViewProvider = .init()) {
+        self.viewProvider = viewProvider
         super.init(frame: .zero)
         textView.isSelectable = true
         textView.backgroundColor = .clear

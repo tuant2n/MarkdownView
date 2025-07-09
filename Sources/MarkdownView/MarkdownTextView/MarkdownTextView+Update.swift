@@ -9,8 +9,6 @@ import CoreText
 import Litext
 import UIKit
 
-private let viewProvider: ReusableViewProvider = .init()
-
 extension MarkdownTextView {
     func updateTextExecute() {
         assert(Thread.isMainThread)
