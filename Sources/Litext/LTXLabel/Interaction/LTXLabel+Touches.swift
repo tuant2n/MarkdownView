@@ -203,10 +203,7 @@ public extension LTXLabel {
 
 extension LTXLabel {
     func showSelectionMenuController() {
-        guard let range = selectionRange,
-              range.length > 0,
-              let textLayout
-        else { return }
+        guard let range = selectionRange, range.length > 0 else { return }
 
         let rects: [CGRect] = textLayout.rects(for: range).map {
             convertRectFromTextLayout($0, insetForInteraction: true)

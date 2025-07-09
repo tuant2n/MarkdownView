@@ -6,25 +6,11 @@
 @_exported import CoreGraphics
 @_exported import CoreText
 @_exported import Foundation
+@_exported import UIKit
 
-#if canImport(UIKit)
-    @_exported import UIKit
+public typealias LTXPlatformView = UIView
+public typealias LTXPlatformBezierPath = UIBezierPath
 
-    public typealias LTXPlatformView = UIView
-    public typealias LTXPlatformBezierPath = UIBezierPath
-
-    public typealias PlatformColor = UIColor
-    public typealias PlatformFont = UIFont
-    public typealias PlatformApplication = UIApplication
-#elseif canImport(AppKit)
-    @_exported import AppKit
-
-    public typealias LTXPlatformView = NSView
-    public typealias LTXPlatformBezierPath = NSBezierPath
-
-    public typealias PlatformColor = NSColor
-    public typealias PlatformFont = NSFont
-    public typealias PlatformApplication = NSApplication
-#else
-    #error("unsupported platform")
-#endif
+public typealias PlatformColor = UIColor
+public typealias PlatformFont = UIFont
+public typealias PlatformApplication = UIApplication

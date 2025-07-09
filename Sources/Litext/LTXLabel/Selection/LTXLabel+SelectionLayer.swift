@@ -22,8 +22,7 @@ extension LTXLabel {
             selectionHandleEnd.isHidden = true
         #endif
 
-        guard let textLayout,
-              let range = selectionRange,
+        guard let range = selectionRange,
               range.location != NSNotFound,
               range.length > 0
         else {

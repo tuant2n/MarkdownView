@@ -10,7 +10,8 @@ import UIKit
 public extension LTXLabel {
     override func draw(_: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
-
-        textLayout?.draw(in: context)
+        UIGraphicsPushContext(context)
+        textLayout.draw(in: context)
+        UIGraphicsPopContext()
     }
 }

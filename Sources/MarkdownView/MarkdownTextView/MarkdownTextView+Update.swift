@@ -9,6 +9,8 @@ import CoreText
 import Litext
 import UIKit
 
+private let viewProvider: ReusableViewProvider = .init()
+
 extension MarkdownTextView {
     func updateTextExecute() {
         assert(Thread.isMainThread)
@@ -16,9 +18,9 @@ extension MarkdownTextView {
         viewProvider.lockPool()
         defer { viewProvider.unlockPool() }
 
-        var pendingReleasedViews: Set<UIView> = .init()
+        var oldViews: Set<UIView> = .init()
         for view in contextViews {
-            pendingReleasedViews.insert(view)
+            oldViews.insert(view)
             if let view = view as? CodeView {
                 viewProvider.stashCodeView(view)
                 continue
@@ -33,12 +35,12 @@ extension MarkdownTextView {
         viewProvider.reorderViews(matching: contextViews)
         contextViews.removeAll()
 
-        let artifacts = TextBuilder.build(view: self)
+        let artifacts = TextBuilder.build(view: self, viewProvider: viewProvider)
         textView.attributedText = artifacts.document
         contextViews = artifacts.subviews
 
-        for viewToRemove in pendingReleasedViews where !artifacts.subviews.contains(viewToRemove) {
-            viewToRemove.removeFromSuperview()
+        for goneView in oldViews where !artifacts.subviews.contains(goneView) {
+            goneView.removeFromSuperview()
         }
 
         textView.setNeedsLayout()

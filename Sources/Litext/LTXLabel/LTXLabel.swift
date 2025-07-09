@@ -44,12 +44,12 @@ public class LTXLabel: LTXPlatformView, Identifiable {
 
     // MARK: - Internal Properties
 
-    var textLayout: LTXTextLayout? {
+    var textLayout: LTXTextLayout = .init(attributedString: .init()) {
         didSet { invalidateTextLayout() }
     }
 
     var attachmentViews: Set<LTXPlatformView> = []
-    var highlightRegions: [LTXHighlightRegion] = []
+    var highlightRegions: [LTXHighlightRegion] { textLayout.highlightRegions }
     var activeHighlightRegion: LTXHighlightRegion?
     var lastContainerSize: CGSize = .zero
 

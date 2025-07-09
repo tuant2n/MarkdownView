@@ -28,8 +28,6 @@ public final class MarkdownTextView: UIView {
         didSet { setupCombine() }
     }
 
-    let viewProvider: ReusableViewProvider = .init()
-
     public init() {
         super.init(frame: .zero)
         textView.isSelectable = true

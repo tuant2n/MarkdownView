@@ -22,10 +22,9 @@ extension TextBuilder {
         return .init(x: lineOrigin.x, y: lineOrigin.y - descent, width: width, height: ascent + descent)
     }
 
-    static func build(view: MarkdownTextView) -> BuildResult {
+    static func build(view: MarkdownTextView, viewProvider: ReusableViewProvider) -> BuildResult {
         let context: MarkdownTextView.PreprocessContent = view.document
         let theme: MarkdownTheme = view.theme
-        let viewProvider: ReusableViewProvider = view.viewProvider
 
         return TextBuilder(nodes: context.blocks, context: context, viewProvider: viewProvider)
             .withTheme(theme)

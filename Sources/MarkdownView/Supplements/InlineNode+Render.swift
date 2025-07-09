@@ -44,7 +44,6 @@ extension MarkdownInlineNode {
                 .foregroundColor: theme.colors.body,
             ])
         case let .code(string), let .html(string):
-            let key = CodeHighlighter.current.key(for: string, language: nil)
             let controlAttributes: [NSAttributedString.Key: Any] = [
                 .font: theme.fonts.codeInline,
                 .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
@@ -53,22 +52,11 @@ extension MarkdownInlineNode {
                 .font: UIFont.systemFont(ofSize: theme.fonts.codeInline.pointSize),
                 .backgroundColor: theme.colors.codeBackground.withAlphaComponent(0.05),
             ])
-            if let highlightMap = context.highlightMaps[key] {
-                let text = highlightMap.apply(to: string, with: theme)
-                text.addAttributes(
-                    controlAttributes,
-                    range: .init(location: 0, length: text.length)
-                )
-                text.insert(spacingCharacter, at: 0)
-                text.append(spacingCharacter)
-                return text
-            } else {
-                let text = NSMutableAttributedString(string: string, attributes: [.foregroundColor: theme.colors.code])
-                text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
-                text.insert(spacingCharacter, at: 0)
-                text.append(spacingCharacter)
-                return text
-            }
+            let text = NSMutableAttributedString(string: string, attributes: [.foregroundColor: theme.colors.code])
+            text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
+            text.insert(spacingCharacter, at: 0)
+            text.append(spacingCharacter)
+            return text
         case let .emphasis(children):
             let ans = NSMutableAttributedString()
             children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }

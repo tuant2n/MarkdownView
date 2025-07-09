@@ -21,8 +21,6 @@ public extension LTXLabel {
     }
 
     override var intrinsicContentSize: CGSize {
-        guard let textLayout else { return .zero }
-
         var constraintSize = CGSize(
             width: CGFloat.greatestFiniteMagnitude,
             height: CGFloat.greatestFiniteMagnitude
@@ -43,25 +41,27 @@ public extension LTXLabel {
         super.layoutSubviews()
 
         let containerSize = bounds.size
-        if flags.layoutIsDirty || lastContainerSize != containerSize {
-            if flags.layoutIsDirty || containerSize.width != lastContainerSize.width {
-                invalidateIntrinsicContentSize()
-            }
 
+        var layoutUpdateWasMade = false
+        if flags.layoutIsDirty || lastContainerSize != containerSize {
+            invalidateIntrinsicContentSize()
             lastContainerSize = containerSize
-            textLayout?.containerSize = containerSize
+            textLayout.containerSize = containerSize
             flags.needsUpdateHighlightRegions = true
             flags.layoutIsDirty = false
-
-            updateSelectionLayer()
-            setNeedsDisplay()
+            layoutUpdateWasMade = true
         }
 
         if flags.needsUpdateHighlightRegions {
-            textLayout?.updateHighlightRegions()
-            highlightRegions = textLayout?.highlightRegions ?? []
+            textLayout.updateHighlightRegions()
             updateAttachmentViews()
             flags.needsUpdateHighlightRegions = false
+            layoutUpdateWasMade = true
+        }
+
+        if layoutUpdateWasMade {
+            updateSelectionLayer()
+            setNeedsDisplay()
         }
     }
 
