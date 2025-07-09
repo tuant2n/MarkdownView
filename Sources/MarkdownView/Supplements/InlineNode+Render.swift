@@ -101,7 +101,8 @@ extension MarkdownInlineNode {
         case let .math(content, replacementIdentifier):
             if let item = context.rendered[replacementIdentifier], let image = item.image {
                 var imageSize = image.size
-                let lineHeight = theme.fonts.body.lineHeight
+                let lineHeight = theme.fonts.body.lineHeight * 0.9 // assuming ascent, we need to fix this later
+
                 if imageSize.height > lineHeight {
                     // scale down
                     let aspectRatio = imageSize.width / imageSize.height
@@ -122,13 +123,9 @@ extension MarkdownInlineNode {
                         runOffsetX += CTRunGetTypographicBounds(run, CFRange(location: 0, length: 0), nil, nil, nil)
                     }
 
-                    var ascent: CGFloat = 0
-                    var descent: CGFloat = 0
-                    CTLineGetTypographicBounds(line, &ascent, &descent, nil)
-
                     let rect = CGRect(
                         x: lineOrigin.x + runOffsetX,
-                        y: lineOrigin.y - descent,
+                        y: lineOrigin.y,
                         width: imageSize.width,
                         height: imageSize.height
                     )
