@@ -60,17 +60,17 @@ public final class ReusableViewProvider {
     }
 
     private let lock = NSLock()
-    
+
     public init() {}
 
     func lockPool() {
         lock.lock()
     }
-    
+
     func unlockPool() {
         lock.unlock()
     }
-    
+
     func removeAll() {
         codeViewPool.objects.removeAll()
         tableViewPool.objects.removeAll()

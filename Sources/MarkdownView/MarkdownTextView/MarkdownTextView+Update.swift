@@ -15,7 +15,7 @@ extension MarkdownTextView {
 
         viewProvider.lockPool()
         defer { viewProvider.unlockPool() }
-        
+
         var pendingReleasedViews: Set<UIView> = .init()
         for view in contextViews {
             pendingReleasedViews.insert(view)
