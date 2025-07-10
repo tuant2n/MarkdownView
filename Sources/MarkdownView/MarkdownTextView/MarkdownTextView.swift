@@ -74,7 +74,6 @@ public final class MarkdownTextView: UIView {
     }
     
     public func bindContentOffset(from scrollView: UIScrollView?) {
-        assert(scrollView?.contentInset ?? .zero == .zero)
         self.trackedScrollView = scrollView
     }
 }
