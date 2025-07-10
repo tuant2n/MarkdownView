@@ -68,6 +68,7 @@ final class ListProcessor {
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
         var indent = CGFloat(item.depth + 1) * listIndent
+        let drawingOffset = listIndent * 1.5 // item.depth + 1 with 1.5 magically works
         if item.ordered { indent *= listIndentMultiple(for: total) }
         paragraphStyle.firstLineHeadIndent = indent
         paragraphStyle.headIndent = indent
@@ -80,7 +81,7 @@ final class ListProcessor {
             .font: theme.fonts.body,
             .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
                 if item.ordered {
-                    numberedDrawing?(context, line, lineOrigin, item.index, indent, String(total).count)
+                    numberedDrawing?(context, line, lineOrigin, item.index, drawingOffset, String(total).count)
                 } else if item.isTask {
                     checkboxDrawing?(context, line, lineOrigin, item.isDone)
                 } else {
