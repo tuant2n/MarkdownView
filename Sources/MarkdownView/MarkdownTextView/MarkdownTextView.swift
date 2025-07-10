@@ -59,8 +59,8 @@ public final class MarkdownTextView: UIView {
 
     public func setMarkdownManually(_ content: PreprocessContent) {
         assert(Thread.isMainThread)
-        use(content)
         resetCombine()
+        use(content)
     }
 
     public func setMarkdown(_ content: PreprocessContent) {
