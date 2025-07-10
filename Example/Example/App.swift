@@ -54,6 +54,7 @@ final class ContentController: UIViewController {
 
         markdownTextView = MarkdownTextView()
         scrollView.addSubview(markdownTextView)
+        markdownTextView.bindContentOffset(from: scrollView)
 
         measureLabel.numberOfLines = 0
         measureLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
