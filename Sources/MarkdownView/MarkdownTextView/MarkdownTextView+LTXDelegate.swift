@@ -13,14 +13,14 @@ extension MarkdownTextView: LTXLabelDelegate {
         // reserved for future use
     }
 
-    public func ltxLabelDetectedUserEventMovingAtLocation(_: Litext.LTXLabel, location: CGPoint) {
+    public func ltxLabelDetectedUserEventMovingAtLocation(_ label: Litext.LTXLabel, location: CGPoint) {
         guard let scrollView = trackedScrollView else { return }
         guard scrollView.contentSize.height > scrollView.bounds.height else { return }
 
         let edgeDetection = CGFloat(32)
         let scrollViewVisibleRect = CGRect(origin: scrollView.contentOffset, size: scrollView.bounds.size)
             .insetBy(dx: edgeDetection, dy: edgeDetection)
-        let locationInScrollView = convert(location, to: scrollView)
+        let locationInScrollView = label.convert(location, to: scrollView)
         guard !scrollViewVisibleRect.contains(locationInScrollView) else {
             return
         }

@@ -37,6 +37,12 @@ extension MarkdownTextView {
         textView.attributedText = artifacts.document
         contextViews = artifacts.subviews
 
+        for view in artifacts.subviews {
+            if let view = view as? CodeView {
+                view.textView.delegate = self
+            }
+        }
+
         for goneView in oldViews where !artifacts.subviews.contains(goneView) {
             goneView.removeFromSuperview()
         }
