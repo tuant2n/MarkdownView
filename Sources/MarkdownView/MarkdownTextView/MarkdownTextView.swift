@@ -72,8 +72,8 @@ public final class MarkdownTextView: UIView {
         use(.init())
         setupCombine()
     }
-    
+
     public func bindContentOffset(from scrollView: UIScrollView?) {
-        self.trackedScrollView = scrollView
+        trackedScrollView = scrollView
     }
 }

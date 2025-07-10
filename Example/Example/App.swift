@@ -50,6 +50,7 @@ final class ContentController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        scrollView.contentInset = .init(top: 64, left: 0, bottom: 64, right: 0)
         view.addSubview(scrollView)
 
         markdownTextView = MarkdownTextView()
