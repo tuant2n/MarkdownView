@@ -17,9 +17,9 @@ extension MarkdownTextView: LTXLabelDelegate {
         guard let scrollView = trackedScrollView else { return }
         guard scrollView.contentSize.height > scrollView.bounds.height else { return }
 
-        let edgeDetection = CGFloat(32)
+        let edgeDetection = CGFloat(16)
         let scrollViewVisibleRect = CGRect(origin: scrollView.contentOffset, size: scrollView.bounds.size)
-            .insetBy(dx: edgeDetection, dy: edgeDetection)
+            .insetBy(dx: 0, dy: edgeDetection)
         let locationInScrollView = label.convert(location, to: scrollView)
         guard !scrollViewVisibleRect.contains(locationInScrollView) else {
             return
