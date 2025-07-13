@@ -35,7 +35,8 @@ extension TextBuilder {
                 var textColor = theme.colors.body
                 if let firstRun = line.glyphRuns().first,
                    let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor {
+                   let color = attributes[.foregroundColor] as? UIColor
+                {
                     textColor = color
                 }
 
@@ -64,7 +65,8 @@ extension TextBuilder {
                 var textColor = theme.colors.body
                 if let firstRun = line.glyphRuns().first,
                    let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor {
+                   let color = attributes[.foregroundColor] as? UIColor
+                {
                     textColor = color
                 }
 
@@ -94,7 +96,8 @@ extension TextBuilder {
                 var textColor = theme.colors.body
                 if let firstRun = line.glyphRuns().first,
                    let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor {
+                   let color = attributes[.foregroundColor] as? UIColor
+                {
                     textColor = color
                 }
 
@@ -179,7 +182,7 @@ extension TextBuilder {
                     }
 
                     // Check for blockquote boundaries
-                    for i in lineRange.location..<min(lineRange.location + lineRange.length, view.textView.attributedText.length) {
+                    for i in lineRange.location ..< min(lineRange.location + lineRange.length, view.textView.attributedText.length) {
                         let charAttrs = view.textView.attributedText.attributes(at: i, effectiveRange: nil)
                         isStart = isStart || (charAttrs[.isBlockquoteStart] as? Bool ?? false)
                         isEnd = isEnd || (charAttrs[.isBlockquoteEnd] as? Bool ?? false)
@@ -197,7 +200,7 @@ extension TextBuilder {
 
                 // Draw vertical bars for each nesting level
                 let textMargin = boundingBox.minX - (CGFloat(depth + 1) * blockquoteTheme.leftIndent)
-                for level in 0...depth {
+                for level in 0 ... depth {
                     let barX = textMargin + CGFloat(level) * blockquoteTheme.leftIndent
                     let alpha = level == 0 ? 1.0 : max(0.3, 0.6 - CGFloat(level - 1) * 0.15)
 
