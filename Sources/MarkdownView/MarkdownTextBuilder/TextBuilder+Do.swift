@@ -198,7 +198,7 @@ extension TextBuilder {
                 // Draw vertical bars for each nesting level
                 let textMargin = boundingBox.minX - (CGFloat(depth + 1) * blockquoteTheme.leftIndent)
                 for level in 0...depth {
-                    let barX = textMargin + CGFloat(level) * blockquoteTheme.leftIndent + 4
+                    let barX = textMargin + CGFloat(level) * blockquoteTheme.leftIndent
                     let alpha = level == 0 ? 1.0 : max(0.3, 0.6 - CGFloat(level - 1) * 0.15)
 
                     context.setFillColor(blockquoteTheme.barColor.withAlphaComponent(alpha).cgColor)

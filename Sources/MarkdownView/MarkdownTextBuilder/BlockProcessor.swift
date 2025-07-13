@@ -139,9 +139,7 @@ final class BlockProcessor {
             result.addAttribute(.paragraphStyle, value: paragraphStyle, range: range)
         }
 
-        if depth == 0 {
-            applyTextColorAlpha(to: result, alpha: blockquoteTheme.textColorAlpha)
-        }
+        applyTextColorAlpha(to: result, alpha: blockquoteTheme.textColorAlpha)
 
         result.addAttribute(.blockquoteDepth, value: depth, range: NSRange(location: 0, length: result.length))
 

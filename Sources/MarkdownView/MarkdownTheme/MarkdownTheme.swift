@@ -83,7 +83,7 @@ public struct MarkdownTheme: Equatable {
         public var rightIndent: CGFloat = 12
         public var verticalSpacing: CGFloat = 16
         public var backgroundColor = UIColor.clear
-        public var textColorAlpha: CGFloat = 0.85
+        public var textColorAlpha: CGFloat = 0.8
     }
 
     public var blockquote: Blockquote = .init()
