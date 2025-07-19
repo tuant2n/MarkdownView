@@ -103,8 +103,8 @@ extension MarkdownInlineNode {
                 var imageSize = image.size
                 let lineHeight = theme.fonts.body.lineHeight
 
-                if imageSize.height > lineHeight {
-                    // scale down
+                if imageSize.height > lineHeight, imageSize.height < lineHeight * 1.5 {
+                    // scale down for single-line equations
                     let aspectRatio = imageSize.width / imageSize.height
                     let scaledHeight = lineHeight
                     let scaledWidth = scaledHeight * aspectRatio
