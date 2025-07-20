@@ -142,11 +142,9 @@ public extension LTXLabel {
         if isPointerDevice(touch: firstTouch) {
             updateSelectinoRange(withLocation: location)
         } else {
-            #if !targetEnvironment(macCatalyst)
-                if selectionRange == nil {
-                    updateSelectinoRange(withLocation: location)
-                }
-            #endif
+            if selectionRange != nil {
+                updateSelectinoRange(withLocation: location)
+            }
         }
     }
 
