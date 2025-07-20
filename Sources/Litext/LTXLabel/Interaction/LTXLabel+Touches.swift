@@ -141,10 +141,6 @@ public extension LTXLabel {
 
         if isPointerDevice(touch: firstTouch) {
             updateSelectinoRange(withLocation: location)
-        } else {
-            if selectionRange != nil {
-                updateSelectinoRange(withLocation: location)
-            }
         }
     }
 
