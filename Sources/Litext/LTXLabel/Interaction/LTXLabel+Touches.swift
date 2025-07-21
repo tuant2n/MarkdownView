@@ -91,14 +91,12 @@ public extension LTXLabel {
         bumpClickCountIfWithinTimeGap()
         if !isSelectable { return }
 
-        if isPointerDevice(touch: firstTouch) {
-            if let index = textIndexAtPoint(location) {
-                selectionRange = NSRange(location: index, length: 0)
-            }
-            return
-        }
-
         if interactionState.clickCount <= 1 {
+            if isPointerDevice(touch: firstTouch) {
+                if let index = textIndexAtPoint(location) {
+                    selectionRange = NSRange(location: index, length: 0)
+                }
+            }
         } else if interactionState.clickCount == 2 {
             if let index = textIndexAtPoint(location) {
                 selectWordAtIndex(index)
