@@ -83,6 +83,9 @@ public class LTXLabel: LTXPlatformView, Identifiable {
         installContextMenuInteraction()
         installTextPointerInteraction()
 
+        isMultipleTouchEnabled = false
+        isExclusiveTouch = true
+
         #if targetEnvironment(macCatalyst)
         #else
             clipsToBounds = false // for selection handle

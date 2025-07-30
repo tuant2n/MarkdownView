@@ -92,6 +92,11 @@ public extension LTXLabel {
         if !isSelectable { return }
 
         if interactionState.clickCount <= 1 {
+            if isPointerDevice(touch: firstTouch) {
+                if let index = textIndexAtPoint(location) {
+                    selectionRange = NSRange(location: index, length: 0)
+                }
+            }
         } else if interactionState.clickCount == 2 {
             if let index = textIndexAtPoint(location) {
                 selectWordAtIndex(index)
@@ -126,18 +131,15 @@ public extension LTXLabel {
         deactivateHighlightRegion()
         performContinuousStateReset()
 
-        #if canImport(UIKit) && !targetEnvironment(macCatalyst)
-            // check if is a pointer device
-
-            // on iOS we block the selection change by touches moved
-            // instead user is required to use those handlers
+        if interactionState.isFirstMove {
             interactionState.isFirstMove = false
-        #else
-            if interactionState.isFirstMove {
-                interactionState.isFirstMove = false
-            }
-            if isSelectable { updateSelectinoRange(withLocation: location) }
-        #endif
+        }
+
+        guard isSelectable else { return }
+
+        if isPointerDevice(touch: firstTouch) {
+            updateSelectinoRange(withLocation: location)
+        }
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -299,5 +301,20 @@ extension LTXLabel {
             }
         }
         return false
+    }
+}
+
+extension LTXLabel {
+    func isPointerDevice(touch: UITouch) -> Bool {
+        #if targetEnvironment(macCatalyst)
+            return true // Mac Catalyst 总是指针设备
+        #else
+            switch touch.type {
+            case .indirectPointer, .pencil:
+                return true
+            default:
+                return false
+            }
+        #endif
     }
 }
