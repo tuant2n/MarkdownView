@@ -9,9 +9,21 @@ import CoreText
 import Foundation
 import UIKit
 
-private let kImageConfiguration = UIImage.SymbolConfiguration(scale: .small)
-private let kCheckedBoxImage: UIImage = .init(systemName: "checkmark.square.fill", withConfiguration: kImageConfiguration) ?? .init()
-private let kUncheckedBoxImage = UIImage(systemName: "square", withConfiguration: kImageConfiguration) ?? .init()
+private func builtinSystemImage(_ name: String, size: CGFloat = 16) -> UIImage {
+    guard let image = UIImage(
+        systemName: name,
+        withConfiguration: UIImage.SymbolConfiguration(scale: .small)
+    ) else { return .init() }
+    let templateImage = image.withTintColor(.label, renderingMode: .alwaysTemplate)
+    return templateImage.resized(to: .init(width: size, height: size))
+}
+
+private let kCheckedBoxImage = builtinSystemImage("checkmark.square.fill")
+private let kUncheckedBoxImage = builtinSystemImage("square")
+
+private func kNumberCircleImage(_ number: Int) -> UIImage {
+    builtinSystemImage("\(number).circle.fill")
+}
 
 extension TextBuilder {
     @inline(__always)
@@ -28,22 +40,26 @@ extension TextBuilder {
 
         var blockquoteMarkingStorage: CGFloat? = nil
 
+        @discardableResult
+        func populateContextColorFromFirstRun(context: CGContext, line: CTLine) -> UIColor {
+            var textColor = theme.colors.body
+            if let firstRun = line.glyphRuns().first,
+               let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
+               let color = attributes[.foregroundColor] as? UIColor
+            {
+                textColor = color
+            }
+            context.setStrokeColor(textColor.cgColor)
+            context.setFillColor(textColor.cgColor)
+            return textColor
+        }
+
         return TextBuilder(nodes: context.blocks, context: context, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { context, line, lineOrigin, depth in
                 let radius: CGFloat = 3
                 let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
-
-                var textColor = theme.colors.body
-                if let firstRun = line.glyphRuns().first,
-                   let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor
-                {
-                    textColor = color
-                }
-
-                context.setStrokeColor(textColor.cgColor)
-                context.setFillColor(textColor.cgColor)
+                populateContextColorFromFirstRun(context: context, line: line)
                 let rect = CGRect(
                     x: boundingBox.minX - 16,
                     y: boundingBox.midY - radius,
@@ -58,32 +74,28 @@ extension TextBuilder {
                     context.fill(rect)
                 }
             }
-            .withNumberedDrawing { context, line, lineOrigin, index, indent, size in
-                var text = "\(index)."
-                while text.count < size + 1 {
-                    text = " " + text
-                }
-
-                var textColor = theme.colors.body
-                if let firstRun = line.glyphRuns().first,
-                   let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor
-                {
-                    textColor = color
-                }
-
-                let string = NSAttributedString(string: text, attributes: [
-                    .font: theme.fonts.codeInline,
-                    .foregroundColor: textColor,
-                ])
-                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -indent, dy: 0)
-                let path = CGPath(rect: rect, transform: nil)
-                let framesetter = CTFramesetterCreateWithAttributedString(string)
-                let frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, string.length), path, nil)
-                CTFrameDraw(frame, context)
+            .withNumberedDrawing { context, line, lineOrigin, num in
+                let rect = lineBoundingBox(line, lineOrigin: lineOrigin)
+                    .offsetBy(dx: -16, dy: 0)
+                    .offsetBy(dx: -8, dy: 0)
+                let image = kNumberCircleImage(num)
+                guard let cgImage = image.cgImage else { return }
+                let imageSize = image.size
+                let targetRect: CGRect = .init(
+                    x: rect.minX,
+                    y: rect.midY - imageSize.height / 2,
+                    width: imageSize.width,
+                    height: imageSize.height
+                )
+                let textColor = populateContextColorFromFirstRun(context: context, line: line)
+                context.clip(to: targetRect, mask: cgImage)
+                context.setFillColor(textColor.cgColor)
+                context.fill(targetRect)
             }
             .withCheckboxDrawing { context, line, lineOrigin, isChecked in
-                let rect = lineBoundingBox(line, lineOrigin: lineOrigin).offsetBy(dx: -20, dy: 0)
+                let rect = lineBoundingBox(line, lineOrigin: lineOrigin)
+                    .offsetBy(dx: -16, dy: 0)
+                    .offsetBy(dx: -8, dy: 0)
                 let image = if isChecked { kCheckedBoxImage } else { kUncheckedBoxImage }
                 guard let cgImage = image.cgImage else { return }
                 let imageSize = image.size
@@ -93,16 +105,7 @@ extension TextBuilder {
                     width: imageSize.width,
                     height: imageSize.height
                 )
-
-                // Get the current color from the text
-                var textColor = theme.colors.body
-                if let firstRun = line.glyphRuns().first,
-                   let attributes = CTRunGetAttributes(firstRun) as? [NSAttributedString.Key: Any],
-                   let color = attributes[.foregroundColor] as? UIColor
-                {
-                    textColor = color
-                }
-
+                let textColor = populateContextColorFromFirstRun(context: context, line: line)
                 context.clip(to: targetRect, mask: cgImage)
                 context.setFillColor(textColor.withAlphaComponent(0.24).cgColor)
                 context.fill(targetRect)
@@ -175,11 +178,11 @@ extension TextBuilder {
                 let lineRect = CGRect(
                     x: 0,
                     y: blockquoteMarkingStorage! - quotingLineHeight,
-                    width: 2,
+                    width: 4,
                     height: quotingLineHeight
                 )
-                context.setFillColor(theme.colors.body.withAlphaComponent(0.5).cgColor)
-                let roundedPath = CGPath(roundedRect: lineRect, cornerWidth: 1, cornerHeight: 1, transform: nil)
+                context.setFillColor(theme.colors.body.withAlphaComponent(0.1).cgColor)
+                let roundedPath = CGPath(roundedRect: lineRect, cornerWidth: 2, cornerHeight: 2, transform: nil)
                 context.addPath(roundedPath)
                 context.fillPath()
             }

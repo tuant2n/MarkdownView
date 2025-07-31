@@ -24,8 +24,6 @@ final class TextBuilder {
     private var blockquoteMarking: BlockquoteMarkingCallback?
     private var blockquoteDrawing: BlockquoteDrawingCallback?
 
-    var listIndent: CGFloat = 20
-
     init(
         nodes: [MarkdownBlockNode],
         context: MarkdownTextView.PreprocessedContent,
@@ -120,7 +118,6 @@ extension TextBuilder {
 
         let listProcessor = ListProcessor(
             theme: theme,
-            listIndent: listIndent,
             viewProvider: viewProvider,
             context: context,
             bulletDrawing: bulletDrawing,

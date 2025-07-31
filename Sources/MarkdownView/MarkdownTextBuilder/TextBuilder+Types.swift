@@ -12,8 +12,8 @@ import UIKit
 extension TextBuilder {
     typealias DrawingCallback = (CGContext, CTLine, CGPoint) -> Void
     typealias BulletDrawingCallback = (CGContext, CTLine, CGPoint, Int) -> Void
-    typealias NumberedDrawingCallback = (CGContext, CTLine, CGPoint, Int, CGFloat, Int) -> Void
     typealias CheckboxDrawingCallback = (CGContext, CTLine, CGPoint, Bool) -> Void
+    typealias NumberedDrawingCallback = (CGContext, CTLine, CGPoint, Int) -> Void
     typealias BlockquoteMarkingCallback = (CGContext, CTLine, CGPoint) -> Void
     typealias BlockquoteDrawingCallback = (CGContext, CTLine, CGPoint) -> Void
 }

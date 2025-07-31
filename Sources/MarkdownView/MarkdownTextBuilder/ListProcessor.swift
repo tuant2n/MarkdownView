@@ -12,7 +12,6 @@ import UIKit
 
 final class ListProcessor {
     private let theme: MarkdownTheme
-    private let listIndent: CGFloat
     private let context: MarkdownTextView.PreprocessedContent
     private let viewProvider: ReusableViewProvider
     private let bulletDrawing: TextBuilder.BulletDrawingCallback?
@@ -21,7 +20,6 @@ final class ListProcessor {
 
     init(
         theme: MarkdownTheme,
-        listIndent: CGFloat,
         viewProvider: ReusableViewProvider,
         context: MarkdownTextView.PreprocessedContent,
         bulletDrawing: TextBuilder.BulletDrawingCallback?,
@@ -29,7 +27,6 @@ final class ListProcessor {
         checkboxDrawing: TextBuilder.CheckboxDrawingCallback?
     ) {
         self.theme = theme
-        self.listIndent = listIndent
         self.viewProvider = viewProvider
         self.context = context
         self.bulletDrawing = bulletDrawing
@@ -63,29 +60,28 @@ final class ListProcessor {
         return 1
     }
 
-    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, total: Int) -> NSAttributedString {
+    private func renderListItem(_ item: ListItem, reduceLineSpacing: Bool = false, total _: Int) -> NSAttributedString {
         let paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = reduceLineSpacing ? 8 : 16
         paragraphStyle.lineSpacing = 4
-        var indent = CGFloat(item.depth + 1) * listIndent
-        let drawingOffset = listIndent * 1.5 // item.depth + 1 with 1.5 magically works
-        if item.ordered { indent *= listIndentMultiple(for: total) }
+        let indent = CGFloat(item.depth + 1) * 24
         paragraphStyle.firstLineHeadIndent = indent
         paragraphStyle.headIndent = indent
 
-        let bulletDrawing = bulletDrawing
-        let numberedDrawing = numberedDrawing
-        let checkboxDrawing = checkboxDrawing
+        let bulletDrawing = bulletDrawing!
+        let numberedDrawing = numberedDrawing!
+        let checkboxDrawing = checkboxDrawing!
         let string = NSMutableAttributedString()
+        let theme = theme
         string.append(.init(string: LTXReplacementText, attributes: [
             .font: theme.fonts.body,
             .ltxLineDrawingCallback: LTXLineDrawingAction(action: { context, line, lineOrigin in
                 if item.ordered {
-                    numberedDrawing?(context, line, lineOrigin, item.index, drawingOffset, String(total).count)
+                    numberedDrawing(context, line, lineOrigin, item.index)
                 } else if item.isTask {
-                    checkboxDrawing?(context, line, lineOrigin, item.isDone)
+                    checkboxDrawing(context, line, lineOrigin, item.isDone)
                 } else {
-                    bulletDrawing?(context, line, lineOrigin, item.depth)
+                    bulletDrawing(context, line, lineOrigin, item.depth)
                 }
             }),
         ]))
