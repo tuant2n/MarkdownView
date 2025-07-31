@@ -179,7 +179,9 @@ extension TextBuilder {
                     height: quotingLineHeight
                 )
                 context.setFillColor(theme.colors.body.withAlphaComponent(0.5).cgColor)
-                context.fill(lineRect)
+                let roundedPath = CGPath(roundedRect: lineRect, cornerWidth: 1, cornerHeight: 1, transform: nil)
+                context.addPath(roundedPath)
+                context.fillPath()
             }
             .build()
     }
