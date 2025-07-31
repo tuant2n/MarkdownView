@@ -76,18 +76,6 @@ public struct MarkdownTheme: Equatable {
 
     public var table: Table = .init()
 
-    public struct Blockquote: Equatable {
-        public var barColor = UIColor.systemGray3
-        public var barWidth: CGFloat = 4
-        public var leftIndent: CGFloat = 20
-        public var rightIndent: CGFloat = 12
-        public var verticalSpacing: CGFloat = 16
-        public var backgroundColor = UIColor.clear
-        public var textColorAlpha: CGFloat = 0.8
-    }
-
-    public var blockquote: Blockquote = .init()
-
     public init() {}
 }
 
@@ -97,7 +85,6 @@ public extension MarkdownTheme {
     static var defaultValueSpacing: Spacings { Spacings() }
     static var defaultValueSize: Sizes { Sizes() }
     static var defaultValueTable: Table { Table() }
-    static var defaultValueBlockquote: Blockquote { Blockquote() }
 }
 
 public extension MarkdownTheme {

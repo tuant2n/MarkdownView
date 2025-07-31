@@ -26,6 +26,8 @@ extension TextBuilder {
         let context: MarkdownTextView.PreprocessedContent = view.document
         let theme: MarkdownTheme = view.theme
 
+        var blockquoteMarkingStorage: CGFloat? = nil
+
         return TextBuilder(nodes: context.blocks, context: context, viewProvider: viewProvider)
             .withTheme(theme)
             .withBulletDrawing { context, line, lineOrigin, depth in
@@ -162,51 +164,22 @@ extension TextBuilder {
                     height: intrinsicContentSize.height
                 )
             }
-            .withBlockquoteDrawing { [weak view] context, line, lineOrigin, depth in
-                guard let view else { return }
-                let blockquoteTheme = theme.blockquote
+            .withBlockquoteMarking { _, line, lineOrigin in
                 let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
-
-                var lineSpacing: CGFloat = 4
-                var paragraphSpacing: CGFloat = 0
-                var isStart = false
-                var isEnd = false
-
-                let lineRange = CTLineGetStringRange(line)
-                if lineRange.location < view.textView.attributedText.length {
-                    let attrs = view.textView.attributedText.attributes(at: lineRange.location, effectiveRange: nil)
-
-                    if let paragraphStyle = attrs[.paragraphStyle] as? NSParagraphStyle {
-                        lineSpacing = paragraphStyle.lineSpacing
-                        paragraphSpacing = paragraphStyle.paragraphSpacing
-                    }
-
-                    // Check for blockquote boundaries
-                    for i in lineRange.location ..< min(lineRange.location + lineRange.length, view.textView.attributedText.length) {
-                        let charAttrs = view.textView.attributedText.attributes(at: i, effectiveRange: nil)
-                        isStart = isStart || (charAttrs[.isBlockquoteStart] as? Bool ?? false)
-                        isEnd = isEnd || (charAttrs[.isBlockquoteEnd] as? Bool ?? false)
-                    }
-                }
-
-                // Calculate vertical bar dimensions
-                let overlapExtension: CGFloat = 10.0
-                let topExtension = isStart ? lineSpacing : (lineSpacing + overlapExtension)
-                let bottomExtension = isEnd ? lineSpacing : (lineSpacing + paragraphSpacing + overlapExtension)
-
-                let barTop = boundingBox.maxY + topExtension
-                let barBottom = boundingBox.minY - bottomExtension
-                let barHeight = barTop - barBottom
-
-                // Draw vertical bars for each nesting level
-                let textMargin = boundingBox.minX - (CGFloat(depth + 1) * blockquoteTheme.leftIndent)
-                for level in 0 ... depth {
-                    let barX = textMargin + CGFloat(level) * blockquoteTheme.leftIndent
-                    let alpha = level == 0 ? 1.0 : max(0.3, 0.6 - CGFloat(level - 1) * 0.15)
-
-                    context.setFillColor(blockquoteTheme.barColor.withAlphaComponent(alpha).cgColor)
-                    context.fill(CGRect(x: barX, y: barBottom, width: blockquoteTheme.barWidth, height: barHeight))
-                }
+                blockquoteMarkingStorage = boundingBox.maxY
+            }
+            .withBlockquoteDrawing { context, line, lineOrigin in
+                let boundingBox = lineBoundingBox(line, lineOrigin: lineOrigin)
+                defer { blockquoteMarkingStorage = nil }
+                let quotingLineHeight: CGFloat = blockquoteMarkingStorage! - boundingBox.minY
+                let lineRect = CGRect(
+                    x: 0,
+                    y: blockquoteMarkingStorage! - quotingLineHeight,
+                    width: 2,
+                    height: quotingLineHeight
+                )
+                context.setFillColor(theme.colors.body.withAlphaComponent(0.5).cgColor)
+                context.fill(lineRect)
             }
             .build()
     }

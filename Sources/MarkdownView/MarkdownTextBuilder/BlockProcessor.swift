@@ -17,6 +17,7 @@ final class BlockProcessor {
     private let thematicBreakDrawing: TextBuilder.DrawingCallback?
     private let codeDrawing: TextBuilder.DrawingCallback?
     private let tableDrawing: TextBuilder.DrawingCallback?
+    private let blockquoteMarking: TextBuilder.BlockquoteMarkingCallback?
     private let blockquoteDrawing: TextBuilder.BlockquoteDrawingCallback?
 
     init(
@@ -26,6 +27,7 @@ final class BlockProcessor {
         thematicBreakDrawing: TextBuilder.DrawingCallback?,
         codeDrawing: TextBuilder.DrawingCallback?,
         tableDrawing: TextBuilder.DrawingCallback?,
+        blockquoteMarking: TextBuilder.BlockquoteMarkingCallback?,
         blockquoteDrawing: TextBuilder.BlockquoteDrawingCallback?
     ) {
         self.theme = theme
@@ -34,6 +36,7 @@ final class BlockProcessor {
         self.thematicBreakDrawing = thematicBreakDrawing
         self.codeDrawing = codeDrawing
         self.tableDrawing = tableDrawing
+        self.blockquoteMarking = blockquoteMarking
         self.blockquoteDrawing = blockquoteDrawing
     }
 
@@ -105,72 +108,56 @@ final class BlockProcessor {
         return (text, codeView)
     }
 
-    func processBlockquote(_ children: [MarkdownBlockNode], depth: Int, processor: (MarkdownBlockNode) -> NSAttributedString) -> NSAttributedString {
+    func processBlockquote(_ children: [MarkdownBlockNode]) -> NSAttributedString {
+        guard !children.isEmpty else { return NSAttributedString() }
+
         let result = NSMutableAttributedString()
 
-        for (index, child) in children.enumerated() {
-            let childContent = processor(child)
+        let baseParagraphStyle = NSMutableParagraphStyle()
+        baseParagraphStyle.firstLineHeadIndent = 16
+        baseParagraphStyle.headIndent = 16
+        baseParagraphStyle.tailIndent = -4
+        baseParagraphStyle.paragraphSpacing = 8
+        baseParagraphStyle.lineSpacing = 4
 
-            if index == 0, case .heading = child {
-                result.append(removeLeadingSpacing(from: childContent))
-            } else {
-                result.append(childContent)
+        for child in children {
+            guard case let .paragraph(content) = child else {
+                assertionFailure("Blockquote should only contain paragraphs after flattening")
+                continue
             }
+            let paragraphContent = content.render(theme: theme, context: context, viewProvider: viewProvider)
+            result.append(paragraphContent)
         }
 
-        let blockquoteTheme = theme.blockquote
-        let totalIndent = CGFloat(depth + 1) * blockquoteTheme.leftIndent
-
-        result.enumerateAttribute(.paragraphStyle, in: NSRange(location: 0, length: result.length), options: []) { value, range, _ in
-            let paragraphStyle: NSMutableParagraphStyle = if let existingStyle = value as? NSParagraphStyle {
-                existingStyle.mutableCopy() as! NSMutableParagraphStyle
-            } else {
-                NSMutableParagraphStyle()
-            }
-
-            paragraphStyle.firstLineHeadIndent += totalIndent
-            paragraphStyle.headIndent += totalIndent
-            paragraphStyle.tailIndent = -blockquoteTheme.rightIndent
-
-            if paragraphStyle.paragraphSpacing > 8 {
-                paragraphStyle.paragraphSpacing = 8
-            }
-
-            result.addAttribute(.paragraphStyle, value: paragraphStyle, range: range)
+        while result.string.hasSuffix("\n") {
+            result.deleteCharacters(in: NSRange(location: result.length - 1, length: 1))
         }
+        guard result.length > 0 else { return result }
+//        result.append(.init(string: "\n"))
 
-        applyTextColorAlpha(to: result, alpha: blockquoteTheme.textColorAlpha)
+        result.addAttribute(
+            .paragraphStyle,
+            value: baseParagraphStyle, range: NSRange(location: 0, length: result.length)
+        )
 
-        result.addAttribute(.blockquoteDepth, value: depth, range: NSRange(location: 0, length: result.length))
+        let marker = blockquoteMarking!
+        let drawer = blockquoteDrawing!
 
-        if result.length > 0 {
-            result.addAttribute(.isBlockquoteStart, value: true, range: NSRange(location: 0, length: 1))
-            result.addAttribute(.isBlockquoteEnd, value: true, range: NSRange(location: result.length - 1, length: 1))
-        }
-
-        if let blockquoteDrawing {
-            result.enumerateAttributes(in: NSRange(location: 0, length: result.length), options: []) { attributes, range, _ in
-                if let existingCallback = attributes[.ltxLineDrawingCallback] as? LTXLineDrawingAction {
-                    let combinedCallback = LTXLineDrawingAction { context, line, lineOrigin in
-                        blockquoteDrawing(context, line, lineOrigin, depth)
-                        existingCallback.action(context, line, lineOrigin)
-                    }
-                    result.addAttribute(.ltxLineDrawingCallback, value: combinedCallback, range: range)
-                } else {
-                    result.addAttribute(
-                        .ltxLineDrawingCallback,
-                        value: LTXLineDrawingAction { context, line, lineOrigin in
-                            blockquoteDrawing(context, line, lineOrigin, depth)
-                        },
-                        range: range
-                    )
-                }
-            }
-        }
-
-        if result.length > 0, !result.string.hasSuffix("\n") {
-            result.append(NSAttributedString(string: "\n"))
-        }
+        result.insert(buildWithParagraphSync(withNewLine: false) { paragraph in
+            paragraph = baseParagraphStyle
+        } content: {
+            .init(string: LTXReplacementText, attributes: [
+                .font: theme.fonts.body,
+                .paragraphStyle: baseParagraphStyle,
+                .ltxLineDrawingCallback: LTXLineDrawingAction { marker($0, $1, $2) },
+            ])
+        }, at: 0)
+        result.append(buildWithParagraphSync(withNewLine: true) {
+            .init(string: LTXReplacementText, attributes: [
+                .font: theme.fonts.body,
+                .ltxLineDrawingCallback: LTXLineDrawingAction { drawer($0, $1, $2) },
+            ])
+        })
 
         return result
     }
@@ -207,20 +194,23 @@ final class BlockProcessor {
 
 extension BlockProcessor {
     private func buildWithParagraphSync(
-        modifier: (NSMutableParagraphStyle) -> Void = { _ in },
+        withNewLine: Bool = true,
+        modifier: (inout NSMutableParagraphStyle) -> Void = { _ in },
         content: () -> NSMutableAttributedString
     ) -> NSMutableAttributedString {
-        let paragraphStyle: NSMutableParagraphStyle = .init()
+        var paragraphStyle: NSMutableParagraphStyle = .init()
         paragraphStyle.paragraphSpacing = 16
         paragraphStyle.lineSpacing = 4
-        modifier(paragraphStyle)
+        modifier(&paragraphStyle)
 
         let string = content()
         string.addAttributes(
             [.paragraphStyle: paragraphStyle],
             range: .init(location: 0, length: string.length)
         )
-        string.append(.init(string: "\n"))
+        if withNewLine, !string.string.hasSuffix("\n") {
+            string.append(.init(string: "\n"))
+        }
         return string
     }
 
@@ -234,21 +224,5 @@ extension BlockProcessor {
             }
         }
         return mutableString
-    }
-
-    private func applyTextColorAlpha(to attributedString: NSMutableAttributedString, alpha: CGFloat) {
-        let range = NSRange(location: 0, length: attributedString.length)
-
-        attributedString.enumerateAttributes(in: range, options: []) { attributes, range, _ in
-            if attributes[.foregroundColor] == nil {
-                attributedString.addAttribute(.foregroundColor, value: theme.colors.body, range: range)
-            }
-        }
-
-        attributedString.enumerateAttribute(.foregroundColor, in: range, options: []) { value, range, _ in
-            if let color = value as? UIColor, color.cgColor.alpha >= 1.0 {
-                attributedString.addAttribute(.foregroundColor, value: color.withAlphaComponent(alpha), range: range)
-            }
-        }
     }
 }
