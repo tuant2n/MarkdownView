@@ -17,12 +17,14 @@ final class CodeView: UIView {
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
+            lineNumberView.textColor = theme.colors.body.withAlphaComponent(0.5)
+            updateLineNumberView()
         }
     }
 
     var language: String = "" {
         didSet {
-            languageLabel.text = language
+            languageLabel.text = language.isEmpty ? "</>" : language
         }
     }
 
@@ -32,6 +34,8 @@ final class CodeView: UIView {
         didSet {
             guard oldValue != content else { return }
             textView.attributedText = highlightMap.apply(to: content, with: theme)
+            lineNumberView.updateForContent(content)
+            updateLineNumberView()
         }
     }
 
@@ -52,10 +56,12 @@ final class CodeView: UIView {
     lazy var textView: LTXLabel = .init()
     lazy var copyButton: UIButton = .init()
     lazy var previewButton: UIButton = .init()
+    lazy var lineNumberView: LineNumberView = .init()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureSubviews()
+        updateLineNumberView()
     }
 
     @available(*, unavailable)
@@ -78,10 +84,12 @@ final class CodeView: UIView {
         let textSize = textView.intrinsicContentSize
         let supposedHeight = Self.intrinsicHeight(for: content, theme: theme)
 
+        let lineNumberWidth = lineNumberView.intrinsicContentSize.width
+
         return CGSize(
             width: max(
                 labelSize.width + CodeViewConfiguration.barPadding * 2,
-                textSize.width + CodeViewConfiguration.codePadding * 2
+                lineNumberWidth + textSize.width + CodeViewConfiguration.codePadding * 2
             ),
             height: max(
                 barHeight + textSize.height + CodeViewConfiguration.codePadding * 2,
@@ -98,6 +106,27 @@ final class CodeView: UIView {
     @objc func handlePreview(_: UIButton) {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         previewAction?(language, textView.attributedText)
+    }
+
+    func updateLineNumberView() {
+        let font = theme.fonts.code
+        let lineHeight = font.lineHeight + CodeViewConfiguration.codeLineSpacing
+        let lineCount = max(content.components(separatedBy: .newlines).count, 1)
+
+        lineNumberView.configure(
+            lineCount: lineCount,
+            lineHeight: lineHeight,
+            font: font,
+            textColor: .secondaryLabel
+        )
+
+        // Update padding to match code padding
+        lineNumberView.padding = UIEdgeInsets(
+            top: CodeViewConfiguration.codePadding,
+            left: CodeViewConfiguration.lineNumberPadding,
+            bottom: CodeViewConfiguration.codePadding,
+            right: CodeViewConfiguration.lineNumberPadding
+        )
     }
 }
 

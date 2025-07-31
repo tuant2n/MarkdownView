@@ -8,7 +8,9 @@ import UIKit
 enum CodeViewConfiguration {
     static let barPadding: CGFloat = 8
     static let codePadding: CGFloat = 8
-    static let codeLineSpacing: CGFloat = 6
+    static let codeLineSpacing: CGFloat = 4
+    static let lineNumberWidth: CGFloat = 40
+    static let lineNumberPadding: CGFloat = 8
 
     static func intrinsicHeight(
         for content: String,
@@ -32,6 +34,7 @@ extension CodeView {
         setupButtons()
         setupScrollView()
         setupTextView()
+        setupLineNumberView()
     }
 
     private func setupViewAppearance() {
@@ -87,12 +90,19 @@ extension CodeView {
         scrollView.addSubview(textView)
     }
 
+    private func setupLineNumberView() {
+        lineNumberView.backgroundColor = .clear
+        addSubview(lineNumberView)
+        updateLineNumberView()
+    }
+
     func performLayout() {
         let labelSize = languageLabel.intrinsicContentSize
         let barHeight = max(languageLabel.font.lineHeight, labelSize.height) + CodeViewConfiguration.barPadding * 2
 
         layoutBarView(barHeight: barHeight, labelSize: labelSize)
         layoutButtons()
+        layoutLineNumberView(barHeight: barHeight)
         layoutScrollViewAndTextView(barHeight: barHeight)
     }
 
@@ -133,20 +143,31 @@ extension CodeView {
         )
     }
 
-    private func layoutScrollViewAndTextView(barHeight: CGFloat) {
-        let textContentSize = textView.intrinsicContentSize
-
-        scrollView.frame = CGRect(
+    private func layoutLineNumberView(barHeight: CGFloat) {
+        let lineNumberSize = lineNumberView.intrinsicContentSize
+        lineNumberView.frame = CGRect(
             x: 0,
             y: barHeight,
-            width: bounds.width,
+            width: lineNumberSize.width,
+            height: bounds.height - barHeight
+        )
+    }
+
+    private func layoutScrollViewAndTextView(barHeight: CGFloat) {
+        let textContentSize = textView.intrinsicContentSize
+        let lineNumberWidth = lineNumberView.intrinsicContentSize.width
+
+        scrollView.frame = CGRect(
+            x: lineNumberWidth,
+            y: barHeight,
+            width: bounds.width - lineNumberWidth,
             height: bounds.height - barHeight
         )
 
         textView.frame = CGRect(
             x: CodeViewConfiguration.codePadding,
             y: CodeViewConfiguration.codePadding,
-            width: max(bounds.width - CodeViewConfiguration.codePadding * 2, textContentSize.width),
+            width: max(scrollView.bounds.width - CodeViewConfiguration.codePadding * 2, textContentSize.width),
             height: textContentSize.height
         )
 
