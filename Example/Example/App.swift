@@ -94,7 +94,7 @@ final class ContentController: UIViewController {
                 autoreleasepool {
                     let parser = MarkdownParser()
                     let result = parser.parse(streamDocument)
-                    let content = MarkdownTextView.PreprocessContent(parserResult: result, theme: .default)
+                    let content = MarkdownTextView.PreprocessedContent(parserResult: result, theme: .default)
                     DispatchQueue.main.asyncAndWait {
                         let date = Date()
                         markdownTextView.setMarkdown(content)

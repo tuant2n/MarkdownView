@@ -9,6 +9,7 @@ A powerful pure UIKit framework for rendering Markdown documents with real-time 
 ## Features
 
 - 🚀 **Real-time Rendering**: Live Markdown parsing and rendering as you type
+- 🖥️ **Specialized for Mobile Display**: Optimized layout that extracts complex elements from lists for better readability
 - 🎨 **Syntax Highlighting**: Beautiful code syntax highlighting with Splash
 - 📊 **Math Rendering**: LaTeX math formula rendering with SwiftMath
 - 📱 **iOS Optimized**: Native UIKit implementation for optimal performance
@@ -19,7 +20,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Lakr233/MarkdownView", from: "0.1.5"),
+    .package(url: "https://github.com/Lakr233/MarkdownView", from: "3.3.1"),
 ]
 ```
 
@@ -36,11 +37,8 @@ import MarkdownParser
 let markdownTextView = MarkdownTextView()
 let parser = MarkdownParser()
 let result = parser.parse("# Hello World")
-markdownTextView.setMarkdown(
-    result.document,
-    theme: .default,
-    mathContent: result.mathContext
-)
+let content = MarkdownTextView.PreprocessedContent(parserResult: result, theme: .default)
+markdownTextView.setMarkdown(content)
 ```
 
 ## Example

@@ -12,7 +12,7 @@ import SwiftMath
 import UIKit
 
 extension [MarkdownInlineNode] {
-    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessContent, viewProvider: ReusableViewProvider) -> NSMutableAttributedString {
+    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessedContent, viewProvider: ReusableViewProvider) -> NSMutableAttributedString {
         let result = NSMutableAttributedString()
         for node in self {
             result.append(node.render(theme: theme, context: context, viewProvider: viewProvider))
@@ -22,7 +22,7 @@ extension [MarkdownInlineNode] {
 }
 
 extension MarkdownInlineNode {
-    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessContent, viewProvider: ReusableViewProvider) -> NSAttributedString {
+    func render(theme: MarkdownTheme, context: MarkdownTextView.PreprocessedContent, viewProvider: ReusableViewProvider) -> NSAttributedString {
         assert(Thread.isMainThread)
         switch self {
         case let .text(string):

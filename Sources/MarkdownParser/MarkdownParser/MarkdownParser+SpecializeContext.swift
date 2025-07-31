@@ -1,5 +1,5 @@
 //
-//  MarkdownParser+ReorderContext.swift
+//  MarkdownParser+SpecializeContext.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 5/27/25.
@@ -10,7 +10,7 @@ import cmark_gfm_extensions
 import Foundation
 
 extension MarkdownParser {
-    class ReorderContext {
+    class SpecializeContext {
         private var context: [MarkdownBlockNode] = []
 
         init() {}
@@ -26,7 +26,7 @@ extension MarkdownParser {
     }
 }
 
-private extension MarkdownParser.ReorderContext {
+private extension MarkdownParser.SpecializeContext {
     func rawListItemByCherryPick(
         _ rawListItem: RawListItem
     ) -> (RawListItem, [MarkdownBlockNode]) {
@@ -36,7 +36,7 @@ private extension MarkdownParser.ReorderContext {
 
         for child in children {
             switch child {
-            case .codeBlock, .table, .heading, .thematicBreak:
+            case .codeBlock, .table, .heading, .thematicBreak, .blockquote:
                 pickedNodes.append(child)
             case let .bulletedList(isTight, items):
                 var resultItems: [RawListItem] = []
@@ -79,7 +79,7 @@ private extension MarkdownParser.ReorderContext {
 
         for child in children {
             switch child {
-            case .codeBlock, .table, .heading, .thematicBreak:
+            case .codeBlock, .table, .heading, .thematicBreak, .blockquote:
                 pickedNodes.append(child)
             case let .bulletedList(isTight, items):
                 var resultItems: [RawListItem] = []
@@ -200,7 +200,8 @@ private extension MarkdownParser.ReorderContext {
     func processNode(_ node: MarkdownBlockNode) {
         switch node {
         case let .blockquote(children):
-            context.append(.blockquote(children: children))
+            let flattenedChildren = flattenBlockquoteChildren(children)
+            context.append(.blockquote(children: flattenedChildren))
         case .bulletedList:
             let nodes = processNodeInsideListEnvironment(node)
             context.append(contentsOf: nodes)
@@ -221,5 +222,86 @@ private extension MarkdownParser.ReorderContext {
         case .thematicBreak:
             context.append(.thematicBreak)
         }
+    }
+
+    func flattenBlockquoteChildren(_ children: [MarkdownBlockNode]) -> [MarkdownBlockNode] {
+        var flattenedChildren: [MarkdownBlockNode] = []
+
+        for child in children {
+            switch child {
+            case let .paragraph(content):
+                flattenedChildren.append(.paragraph(content: content))
+            case let .heading(_, content):
+                flattenedChildren.append(.paragraph(content: content))
+            case let .codeBlock(_, content):
+                flattenedChildren.append(.paragraph(content: [.text(content)]))
+            case let .blockquote(nestedChildren):
+                let flattened = flattenBlockquoteChildren(nestedChildren)
+                flattenedChildren.append(contentsOf: flattened)
+            case let .bulletedList(_, items):
+                for item in items {
+                    let paragraphs = extractParagraphsFromListItem(item.children)
+                    flattenedChildren.append(contentsOf: paragraphs)
+                }
+            case let .numberedList(_, _, items):
+                for item in items {
+                    let paragraphs = extractParagraphsFromListItem(item.children)
+                    flattenedChildren.append(contentsOf: paragraphs)
+                }
+            case let .taskList(_, items):
+                for item in items {
+                    let paragraphs = extractParagraphsFromListItem(item.children)
+                    flattenedChildren.append(contentsOf: paragraphs)
+                }
+            case let .table(_, rows):
+                for row in rows {
+                    for cell in row.cells {
+                        flattenedChildren.append(.paragraph(content: cell.content))
+                    }
+                }
+            case .thematicBreak:
+                continue
+            }
+        }
+
+        return flattenedChildren
+    }
+
+    func extractParagraphsFromListItem(_ children: [MarkdownBlockNode]) -> [MarkdownBlockNode] {
+        var paragraphs: [MarkdownBlockNode] = []
+
+        for child in children {
+            switch child {
+            case let .paragraph(content):
+                paragraphs.append(.paragraph(content: content))
+            case let .heading(_, content):
+                paragraphs.append(.paragraph(content: content))
+            case let .codeBlock(_, content):
+                paragraphs.append(.paragraph(content: [.text(content)]))
+            case .blockquote:
+                // blockquote 应该已经被提取到顶级，这里不应该出现
+                assertionFailure("blockquote should not appear in list items")
+            default:
+                // 递归处理其他嵌套列表
+                if case let .bulletedList(_, items) = child {
+                    for item in items {
+                        let nestedParagraphs = extractParagraphsFromListItem(item.children)
+                        paragraphs.append(contentsOf: nestedParagraphs)
+                    }
+                } else if case let .numberedList(_, _, items) = child {
+                    for item in items {
+                        let nestedParagraphs = extractParagraphsFromListItem(item.children)
+                        paragraphs.append(contentsOf: nestedParagraphs)
+                    }
+                } else if case let .taskList(_, items) = child {
+                    for item in items {
+                        let nestedParagraphs = extractParagraphsFromListItem(item.children)
+                        paragraphs.append(contentsOf: nestedParagraphs)
+                    }
+                }
+            }
+        }
+
+        return paragraphs
     }
 }

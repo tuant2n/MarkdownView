@@ -1,5 +1,5 @@
 //
-//  PreprocessContent.swift
+//  PreprocessedContent.swift
 //  MarkdownView
 //
 //  Created by 秋星桥 on 7/5/25.
@@ -9,7 +9,7 @@ import Foundation
 import MarkdownParser
 
 public extension MarkdownTextView {
-    struct PreprocessContent {
+    struct PreprocessedContent {
         public let blocks: [MarkdownBlockNode]
         public let rendered: RenderedTextContent.Map
         public let highlightMaps: [Int: CodeHighlighter.HighlightMap]

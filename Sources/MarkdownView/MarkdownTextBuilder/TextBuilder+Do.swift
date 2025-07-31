@@ -23,7 +23,7 @@ extension TextBuilder {
     }
 
     static func build(view: MarkdownTextView, viewProvider: ReusableViewProvider) -> BuildResult {
-        let context: MarkdownTextView.PreprocessContent = view.document
+        let context: MarkdownTextView.PreprocessedContent = view.document
         let theme: MarkdownTheme = view.theme
 
         return TextBuilder(nodes: context.blocks, context: context, viewProvider: viewProvider)

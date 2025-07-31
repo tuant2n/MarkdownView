@@ -66,7 +66,7 @@ final class TableView: UIView {
         scrollView.addSubview(gridView)
     }
 
-    public func setContents(_ contents: [Rows]) {
+    func setContents(_ contents: [Rows]) {
         // replace <br> in each items with newline characters
         var builder = contents
         for x in 0 ..< contents.count {
@@ -83,7 +83,7 @@ final class TableView: UIView {
         self.contents = builder
     }
 
-    public func setTheme(_ theme: MarkdownTheme) {
+    func setTheme(_ theme: MarkdownTheme) {
         self.theme = theme
         updateThemeAppearance()
     }

@@ -29,7 +29,7 @@ extension MarkdownTextView {
         }
     }
 
-    func use(_ content: PreprocessContent) {
+    func use(_ content: PreprocessedContent) {
         assert(Thread.isMainThread)
         document = content
         // due to a bug in model gemini-flash

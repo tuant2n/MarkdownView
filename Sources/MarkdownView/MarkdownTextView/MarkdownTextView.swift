@@ -13,7 +13,7 @@ public final class MarkdownTextView: UIView {
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
     public var codePreviewHandler: ((String?, NSAttributedString) -> Void)?
 
-    public internal(set) var document: PreprocessContent = .init()
+    public internal(set) var document: PreprocessedContent = .init()
     public let textView: LTXLabel = .init()
     public var theme: MarkdownTheme = .default {
         didSet { setMarkdown(document) } // update it
@@ -23,7 +23,7 @@ public final class MarkdownTextView: UIView {
 
     var contextViews: [UIView] = []
     var cancellables = Set<AnyCancellable>()
-    let contentSubject = CurrentValueSubject<PreprocessContent, Never>(.init())
+    let contentSubject = CurrentValueSubject<PreprocessedContent, Never>(.init())
     public var throttleInterval: TimeInterval? = 1 / 20 { // x fps
         didSet { setupCombine() }
     }
@@ -57,13 +57,13 @@ public final class MarkdownTextView: UIView {
         return textView.intrinsicContentSize
     }
 
-    public func setMarkdownManually(_ content: PreprocessContent) {
+    public func setMarkdownManually(_ content: PreprocessedContent) {
         assert(Thread.isMainThread)
         resetCombine()
         use(content)
     }
 
-    public func setMarkdown(_ content: PreprocessContent) {
+    public func setMarkdown(_ content: PreprocessedContent) {
         contentSubject.send(content)
     }
 
