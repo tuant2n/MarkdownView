@@ -17,7 +17,6 @@ final class CodeView: UIView {
     var theme: MarkdownTheme = .default {
         didSet {
             languageLabel.font = theme.fonts.code
-            lineNumberView.textColor = theme.colors.body.withAlphaComponent(0.5)
             updateLineNumberView()
         }
     }
@@ -110,6 +109,8 @@ final class CodeView: UIView {
 
     func updateLineNumberView() {
         let font = theme.fonts.code
+        lineNumberView.textColor = theme.colors.body.withAlphaComponent(0.5)
+
         let lineHeight = font.lineHeight + CodeViewConfiguration.codeLineSpacing
         let lineCount = max(content.components(separatedBy: .newlines).count, 1)
 
@@ -120,7 +121,6 @@ final class CodeView: UIView {
             textColor: .secondaryLabel
         )
 
-        // Update padding to match code padding
         lineNumberView.padding = UIEdgeInsets(
             top: CodeViewConfiguration.codePadding,
             left: CodeViewConfiguration.lineNumberPadding,

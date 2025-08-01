@@ -1,6 +1,6 @@
 //
-//  Created by ktiays on 2025/1/22.
-//  Copyright (c) 2025 ktiays. All rights reserved.
+//  Created by Lakr233 on 2025/1/22.
+//  Copyright (c) 2025 MarkdownView. All rights reserved.
 //
 
 import UIKit
