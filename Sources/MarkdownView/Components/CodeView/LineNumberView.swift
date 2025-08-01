@@ -6,10 +6,6 @@
 import UIKit
 
 final class LineNumberView: UIView {
-    var lineHeight: CGFloat = 20 {
-        didSet { setNeedsDisplay() }
-    }
-
     var lineCount: Int = 1 {
         didSet {
             setNeedsDisplay()
@@ -29,6 +25,13 @@ final class LineNumberView: UIView {
     }
 
     var padding: UIEdgeInsets = .init(top: 8, left: 8, bottom: 8, right: 8) {
+        didSet {
+            setNeedsDisplay()
+            invalidateIntrinsicContentSize()
+        }
+    }
+
+    var contentHeight: CGFloat = 0 {
         didSet {
             setNeedsDisplay()
             invalidateIntrinsicContentSize()
@@ -58,17 +61,23 @@ final class LineNumberView: UIView {
 
         return CGSize(
             width: textSize.width + padding.left + padding.right,
-            height: CGFloat(lineCount) * lineHeight + padding.top + padding.bottom
+            height: max(contentHeight + padding.top + padding.bottom, textSize.height + padding.top + padding.bottom)
         )
     }
 
     override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         context.clear(rect)
+
+        guard lineCount > 0, contentHeight > 0 else { return }
+
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: textColor,
         ]
+
+        let availableHeight = contentHeight
+        let lineSpacing = availableHeight / CGFloat(lineCount)
         let startY = padding.top
 
         for lineNumber in 1 ... lineCount {
@@ -76,7 +85,8 @@ final class LineNumberView: UIView {
             let textSize = numberString.size(withAttributes: textAttributes)
 
             let x = bounds.width - padding.right - textSize.width
-            let y = startY + CGFloat(lineNumber - 1) * lineHeight
+            // 根据实际内容高度均匀分布行号
+            let y = startY + CGFloat(lineNumber - 1) * lineSpacing + (lineSpacing - textSize.height) / 2
 
             let textRect = CGRect(
                 x: x,
@@ -89,9 +99,9 @@ final class LineNumberView: UIView {
         }
     }
 
-    func configure(lineCount: Int, lineHeight: CGFloat, font: UIFont, textColor: UIColor) {
+    func configure(lineCount: Int, contentHeight: CGFloat, font: UIFont, textColor: UIColor) {
         self.lineCount = lineCount
-        self.lineHeight = lineHeight
+        self.contentHeight = contentHeight
         self.font = font
         self.textColor = textColor
     }

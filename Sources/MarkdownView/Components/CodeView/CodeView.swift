@@ -75,6 +75,7 @@ final class CodeView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         performLayout()
+        updateLineNumberView()
     }
 
     override var intrinsicContentSize: CGSize {
@@ -111,12 +112,12 @@ final class CodeView: UIView {
         let font = theme.fonts.code
         lineNumberView.textColor = theme.colors.body.withAlphaComponent(0.5)
 
-        let lineHeight = font.lineHeight + CodeViewConfiguration.codeLineSpacing
         let lineCount = max(content.components(separatedBy: .newlines).count, 1)
+        let textViewContentHeight = textView.intrinsicContentSize.height
 
         lineNumberView.configure(
             lineCount: lineCount,
-            lineHeight: lineHeight,
+            contentHeight: textViewContentHeight,
             font: font,
             textColor: .secondaryLabel
         )
