@@ -46,7 +46,7 @@ final class CodeView: UIView {
         }
     }
     
-    var copyAction: ((String) -> Void)?
+    var copyAction: ((String?, String) -> Void)?
 
     private let callerIdentifier = UUID()
     private var currentTaskIdentifier: UUID?
@@ -102,7 +102,7 @@ final class CodeView: UIView {
 
     @objc func handleCopy(_: UIButton) {
         if let copyAction = copyAction {
-            copyAction(content)
+            copyAction(language, content)
         }
         else {
             UIPasteboard.general.string = content

@@ -12,7 +12,7 @@ import UIKit
 public final class MarkdownTextView: UIView {
     public var linkHandler: ((LinkPayload, NSRange, CGPoint) -> Void)?
     public var codePreviewHandler: ((String?, NSAttributedString) -> Void)?
-    public var codeCopyHandler: ((String) -> Void)?
+    public var codeCopyHandler: ((String?, String) -> Void)?
     
     public internal(set) var document: PreprocessedContent = .init()
     public let textView: LTXLabel = .init()
