@@ -45,6 +45,8 @@ final class CodeView: UIView {
             setNeedsLayout()
         }
     }
+    
+    var copyAction: ((String) -> Void)?
 
     private let callerIdentifier = UUID()
     private var currentTaskIdentifier: UUID?
@@ -99,7 +101,12 @@ final class CodeView: UIView {
     }
 
     @objc func handleCopy(_: UIButton) {
-        UIPasteboard.general.string = content
+        if let copyAction = copyAction {
+            copyAction(content)
+        }
+        else {
+            UIPasteboard.general.string = content
+        }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 

@@ -142,6 +142,7 @@ extension TextBuilder {
                     size: .init(width: view.bounds.width - leftIndent, height: intrinsicContentSize.height)
                 )
                 codeView.previewAction = view.codePreviewHandler
+                codeView.copyAction = view.codeCopyHandler
             }
             .withTableDrawing { [weak view] _, line, lineOrigin in
                 guard let view else { return }
