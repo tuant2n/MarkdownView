@@ -52,12 +52,22 @@ extension MarkdownInlineNode {
             text.addAttributes(controlAttributes, range: .init(location: 0, length: text.length))
             return text
         case let .emphasis(children):
+            /*
             let ans = NSMutableAttributedString()
             children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
             ans.addAttributes(
                 [
                     .underlineStyle: NSUnderlineStyle.thick.rawValue,
                     .underlineColor: theme.colors.emphasis,
+                ],
+                range: NSRange(location: 0, length: ans.length)
+            )
+             */
+            let ans = NSMutableAttributedString()
+            children.map { $0.render(theme: theme, context: context, viewProvider: viewProvider) }.forEach { ans.append($0) }
+            ans.addAttributes(
+                [
+                    .font: theme.fonts.italic,
                 ],
                 range: NSRange(location: 0, length: ans.length)
             )
